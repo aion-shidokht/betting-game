@@ -1,0 +1,39 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM crash logs
+hs_err_pid*
+
+# Mac
+.DS_Store
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
+# build
+/build/
+
+# ant
+.ant-targets-build.xml
+
+# generated files
+/dist/
+out/
