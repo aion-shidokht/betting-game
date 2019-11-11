@@ -29,7 +29,7 @@ hs_err_pid*
 *.iws
 
 # build
-/build/
+build/
 
 # ant
 .ant-targets-build.xml
@@ -37,3 +37,4 @@ hs_err_pid*
 # generated files
 /dist/
 out/
+testreports/

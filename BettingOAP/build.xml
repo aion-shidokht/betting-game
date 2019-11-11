@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="clean_build" name="BettingOAP">
+
+  <property name="dir.local.workspace" value="."/>
+  <property name="dir.local.build.main" value="${dir.local.workspace}/build/main"/>
+  <property name="dir.local.build.test" value="${dir.local.workspace}/build/test"/>
+  <property name="dir.local.src.test" value="${dir.local.workspace}/test"/>
+  <property name="dir.local.src.main" value="${dir.local.workspace}/src"/>
+  <property name="dir.local.testreports" value="${dir.local.workspace}/testreports" />
+  <property name="dir.global.lib" value="../lib"/>
+  <property name="dir.global.jars" value="../jars"/>
+  <property name="junit.heap" value="32m"/>
+  <property name="junit.threads" value="4"/>
+
+  <target name="clean" >
+    <antcall target="cleanmain" />
+    <antcall target="cleantest" />
+  </target>
+
+  <target name="clean_build" depends="cleanmain">
+    <antcall target="buildmain">
+      <param name="compile.debug" value="${compile.debug}"/>
+    </antcall>
+  </target>
+
+  <target name="cleanmain">
+    <delete dir="${dir.local.build.main}"/>
+  </target>
+
+  <target name="buildmain">
+    <echo message="Building ${ant.project.name}..."/>
+
+    <mkdir dir="${dir.local.build.main}"/>
+    <javac debug="true" debuglevel="source,lines,vars" includeantruntime="false" release="10"
+           srcdir="${dir.local.src.main}"
+           excludes="**/package-info.java"
+           destdir="${dir.local.build.main}" includes="**/*.java,module-info.java">
+      <classpath>
+        <pathelement location="${dir.global.lib}/offline-signer-v3.jar"/>
+        <pathelement location="${dir.global.lib}/node-test-harness.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-userlib.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-embed.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-api.jar"/>
+        <pathelement location="${dir.global.lib}/slf4j.jar"/>
+      </classpath>
+    </javac>
+
+    <jar destfile="${dir.local.build.main}/${ant.project.name}.jar" filesetmanifest="mergewithoutmain"
+         basedir="${dir.local.build.main}"/>
+  </target>
+
+  <target name="clean_buildtest" depends="cleantest">
+    <antcall target="buildtest">
+      <param name="compile.debug" value="${compile.debug}"/>
+    </antcall>
+  </target>
+
+  <target name="cleantest">
+    <delete dir="${dir.local.build.test}"/>
+    <delete dir="${dir.local.testreports}"/>
+  </target>
+
+  <target name="buildtest">
+    <echo message="Building tests for ${ant.project.name}..."/>
+
+    <mkdir dir="${dir.local.build.test}"/>
+    <javac debug="true" debuglevel="source,lines,vars" includeantruntime="false" release="10"
+           srcdir="${dir.local.src.test}"
+           excludes="**/package-info.java"
+           destdir="${dir.local.build.test}" includes="**/*.java,module-info.java">
+      <classpath>
+        <pathelement location="${dir.local.build.main}/${ant.project.name}.jar" />
+        <pathelement location="${dir.global.lib}/junit-4.12.jar"/>
+        <pathelement location="${dir.global.lib}/mockito-all-1.9.5.jar"/>
+        <pathelement location="${dir.global.lib}/modUtil.jar"/>
+        <pathelement location="${dir.global.lib}/node-test-harness.jar"/>
+        <pathelement location="${dir.global.lib}/offline-signer-v3.jar"/>
+        <pathelement location="${dir.global.lib}/ed25519.jar"/>
+        <pathelement location="${dir.global.lib}/modRlp.jar"/>
+        <pathelement location="${dir.global.lib}/commons-codec-1.11.jar"/>
+        <pathelement location="${dir.global.lib}/gson-2.8.5.jar"/>
+        <pathelement location="${dir.global.lib}/slf4j.jar"/>
+        <pathelement location="${dir.global.lib}/logback.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="test" depends="clean_buildtest" >
+    <mkdir dir="${dir.local.testreports}" />
+    <junit printsummary="on" haltonfailure="true" fork="true" maxmemory="${junit.heap}" threads="${junit.threads}" dir="${dir.local.workspace}">
+      <classpath>
+        <pathelement location="${dir.local.build.test}" />
+        <pathelement location="${dir.local.build.main}/${ant.project.name}.jar" />
+        <pathelement location="${dir.global.lib}/junit-4.12.jar"/>
+        <pathelement location="${dir.global.lib}/mockito-all-1.9.5.jar"/>
+        <pathelement location="${dir.global.lib}/modUtil.jar"/>
+        <pathelement location="${dir.global.lib}/node-test-harness.jar"/>
+        <pathelement location="${dir.global.lib}/offline-signer-v3.jar"/>
+        <pathelement location="${dir.global.lib}/ed25519.jar"/>
+        <pathelement location="${dir.global.lib}/modRlp.jar"/>
+        <pathelement location="${dir.global.lib}/commons-codec-1.11.jar"/>
+        <pathelement location="${dir.global.lib}/gson-2.8.5.jar"/>
+        <pathelement location="${dir.global.lib}/slf4j.jar"/>
+        <pathelement location="${dir.global.lib}/logback.jar"/>
+      </classpath>
+      <formatter type="plain" usefile="false" />
+      <formatter type="xml" />
+      <batchtest todir="${dir.local.testreports}">
+        <fileset dir="${dir.local.src.test}" includes="**/*Test.java" />
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="buildJar">
+    <jar destfile = "${dir.global.jars}/${ant.project.name}.jar"
+         basedir = "${dir.local.build.main}">
+    </jar>
+  </target>
+</project>
