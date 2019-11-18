@@ -44,4 +44,9 @@ public class BettingEvents {
     public static void gameStopped() {
         Blockchain.log("GameStopped".getBytes());
     }
+
+    public static void deployed() {
+        Blockchain.log("BettingContractDeployed".getBytes());
+    }
+
 }

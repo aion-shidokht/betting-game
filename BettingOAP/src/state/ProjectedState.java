@@ -169,5 +169,35 @@ public class ProjectedState {
         return statements.values().stream().anyMatch(s -> s.getStatementId() == id);
     }
 
+    public void clear() {
+        blocks.clear();
+        players.clear();
+        statements.clear();
+        votes.clear();
+        answers.clear();
+        currentGame.clear();
+    }
+
+    public void revertBlocks(int count) {
+        Set<Integer> logIds = new HashSet<>();
+        for (int i = 0; i < count; i++) {
+            BlockTuple block = blocks.removeLast();
+            logIds.addAll(block.getIncluededLogIds());
+        }
+        revertLogs(logIds);
+    }
+
+    private void revertLogs(Set<Integer> logIds) {
+        players.keySet().removeAll(logIds);
+        statements.keySet().removeAll(logIds);
+        votes.keySet().removeAll(logIds);
+        answers.keySet().removeAll(logIds);
+        gameLock.writeLock().lock();
+        try {
+            currentGame.revert(logIds);
+        } finally {
+            gameLock.writeLock().unlock();
+        }
+    }
 
 }

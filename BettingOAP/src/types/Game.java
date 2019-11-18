@@ -7,6 +7,7 @@ import util.Pair;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class Game {
     private Pair<Integer, Boolean> isStopped;
@@ -63,6 +64,38 @@ public class Game {
 
     public Game getCopy(){
         return new Game(isStopped, prizeDistributed, winners, transferredValues);
+    }
+
+    public void clear() {
+        resetStopped();
+        resetDistributedPrize();
+        resetWinnersList();
+        transferredValues.clear();
+    }
+
+    private void resetStopped() {
+        isStopped = Pair.of(-1, false);
+    }
+
+    private void resetDistributedPrize() {
+        prizeDistributed = Pair.of(-1, false);
+    }
+
+    private void resetWinnersList() {
+        winners = Pair.of(-1, null);
+    }
+
+    public void revert(Set<Integer> logIds) {
+        transferredValues.keySet().removeAll(logIds);
+        if (logIds.contains(isStopped.key)) {
+            resetStopped();
+        }
+        if (logIds.contains(prizeDistributed.key)) {
+            resetDistributedPrize();
+        }
+        if (logIds.contains(winners.key)) {
+            resetWinnersList();
+        }
     }
 
     @Override

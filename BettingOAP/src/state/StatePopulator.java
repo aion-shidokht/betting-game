@@ -1,6 +1,7 @@
 package state;
 
 import types.Answer;
+import types.BlockTuple;
 import types.Statement;
 import types.Vote;
 import internal.CriticalException;
@@ -8,10 +9,7 @@ import org.aion.harness.kernel.Address;
 import util.Log;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.util.stream.Collectors.groupingBy;
 
@@ -75,5 +73,18 @@ public class StatePopulator {
             projectedState.addBlockTuple(e.getKey(), blockHash, ids);
         }
 
+    }
+
+    public void revertBlocks(int count) {
+        projectedState.revertBlocks(count);
+    }
+
+    public void clear() {
+        projectedState.clear();
+    }
+
+    public ListIterator<BlockTuple> getBlocksIterator() {
+        List<BlockTuple> blocks = projectedState.getBlocks();
+        return blocks.listIterator(blocks.size() - 1);
     }
 }

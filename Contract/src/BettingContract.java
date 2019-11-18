@@ -31,6 +31,7 @@ public class BettingContract {
         owner = Blockchain.getCaller();
         isGameOnGoing = true;
         isPrizePayedOut = false;
+        BettingEvents.deployed();
     }
 
     @Callable

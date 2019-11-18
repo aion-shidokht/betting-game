@@ -45,7 +45,8 @@ public class StatePopulatorTest {
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
                 deployLog,
-                pollingIntervalMillis);
+                pollingIntervalMillis,
+                BigInteger.ONE);
 
         eventListenerThread = new Thread(eventListener);
     }
