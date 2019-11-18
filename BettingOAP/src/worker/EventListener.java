@@ -3,11 +3,13 @@ package worker;
 import internal.CriticalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import state.StatePopulator;
 import util.Log;
 import util.NodeConnection;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class EventListener implements Runnable {
@@ -17,14 +19,18 @@ public class EventListener implements Runnable {
     private final Logger logger = LoggerFactory.getLogger("EventListener");
     private BigInteger lastRetrievedBlockNumber;
     private byte[] lastRetrievedBlockHash;
+    private StatePopulator statePopulator;
     private Log deployedLog;
     private volatile boolean shutdown = false;
 
     public EventListener(NodeConnection nodeConnection,
+                         StatePopulator statePopulator,
                          Log deployedLog,
                          long pollIntervalMilliSeconds) {
         this.nodeConnection = nodeConnection;
         this.deployedLog = deployedLog;
+        this.statePopulator = statePopulator;
+        statePopulator.populate(Arrays.asList(deployedLog));
         this.lastRetrievedBlockHash = deployedLog.blockHash;
         this.lastRetrievedBlockNumber = deployedLog.blockNumber;
         this.pollIntervalMilliSeconds = pollIntervalMilliSeconds;
@@ -44,7 +50,7 @@ public class EventListener implements Runnable {
 
                 if (sortedLogs.size() > 0) {
                     logger.debug("Found " + sortedLogs.size() + " new logs.");
-                    // todo populate the state
+                    statePopulator.populate(sortedLogs);
                     Log lastEvent = sortedLogs.get(sortedLogs.size() - 1);
                     lastRetrievedBlockHash = lastEvent.blockHash;
                     lastRetrievedBlockNumber = lastEvent.blockNumber;
