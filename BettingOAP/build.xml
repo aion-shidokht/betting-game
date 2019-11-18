@@ -42,6 +42,9 @@
         <pathelement location="${dir.global.lib}/org-aion-avm-embed.jar"/>
         <pathelement location="${dir.global.lib}/org-aion-avm-api.jar"/>
         <pathelement location="${dir.global.lib}/slf4j.jar"/>
+        <pathelement location="${dir.global.lib}/gson-2.8.5.jar"/>
+        <pathelement location="${dir.global.lib}/commons-codec-1.11.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-core.jar"/>
       </classpath>
     </javac>
 
@@ -81,6 +84,7 @@
         <pathelement location="${dir.global.lib}/gson-2.8.5.jar"/>
         <pathelement location="${dir.global.lib}/slf4j.jar"/>
         <pathelement location="${dir.global.lib}/logback.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-api.jar"/>
       </classpath>
     </javac>
   </target>
@@ -102,6 +106,7 @@
         <pathelement location="${dir.global.lib}/gson-2.8.5.jar"/>
         <pathelement location="${dir.global.lib}/slf4j.jar"/>
         <pathelement location="${dir.global.lib}/logback.jar"/>
+        <pathelement location="${dir.global.lib}/org-aion-avm-api.jar"/>
       </classpath>
       <formatter type="plain" usefile="false" />
       <formatter type="xml" />
