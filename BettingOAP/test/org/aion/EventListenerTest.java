@@ -1,7 +1,7 @@
 package org.aion;
 
+import types.Player;
 import org.aion.harness.kernel.Address;
-import org.aion.util.conversions.Hex;
 import org.apache.commons.codec.DecoderException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,10 +13,7 @@ import util.NodeConnection;
 import worker.EventListener;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -41,6 +38,7 @@ public class EventListenerTest {
                 BigInteger.TEN,
                 0,
                 0,
+                Hash,
                 Hash);
 
         projectedState = new ProjectedState();
@@ -93,8 +91,8 @@ public class EventListenerTest {
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId));
-        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2));
+        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId).getPlayerAddress());
+        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2).getPlayerAddress());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
     }
@@ -127,8 +125,8 @@ public class EventListenerTest {
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId));
-        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2));
+        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId).getPlayerAddress());
+        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2).getPlayerAddress());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
     }
@@ -254,8 +252,8 @@ public class EventListenerTest {
         Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player1));
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player2Replacement));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player2Replacement));
 
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(1, projectedState.getVotes().size());
@@ -316,8 +314,8 @@ public class EventListenerTest {
         Assert.assertEquals(newDeployLog.blockNumber, projectedState.getBlocks().getFirst().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player1));
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player2Replacement));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player2Replacement));
 
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(1, projectedState.getVotes().size());
@@ -378,8 +376,8 @@ public class EventListenerTest {
         Assert.assertEquals(newDeployLog.blockNumber, projectedState.getBlocks().getFirst().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player1));
-        Assert.assertTrue(projectedState.getPlayers().containsValue(player2Replacement));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player2Replacement));
 
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(1, projectedState.getVotes().size());
@@ -483,6 +481,58 @@ public class EventListenerTest {
     public void testReorgUntilDeployEventUnorderedReturn() throws DecoderException, InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
+        Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
+
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(91), player1, 0, null);
+        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(91), player1, 1, "Q".getBytes(), "H".getBytes(), 1, null);
+        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 1, "A".getBytes(), 2, registerLog2Replacement.blockHash);
+
+        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
+
+        // 10 -> 100
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+                .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
+                .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
+        // 100 -> 102
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+                .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
+                .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
+        // 102 -> 110
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+                .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
+                .thenReturn(new ArrayList<>(Arrays.asList(submitLog2, voteLogReplacement, registerLog2Replacement)));
+        // chain reorgs
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+                .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
+
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", null))
+                .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
+
+        startThreads();
+        Thread.sleep(pollingIntervalMillis * 10);
+        shutdownThreads();
+
+        Assert.assertEquals(4, projectedState.getBlocks().size());
+        Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
+
+        Assert.assertEquals(2, projectedState.getPlayers().size());
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
+        Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player2Replacement));
+
+        Assert.assertEquals(2, projectedState.getStatements().size());
+        Assert.assertEquals(1, projectedState.getVotes().size());
+    }
+
+    @Test
+    public void testReorgDeployEvent() throws DecoderException, InterruptedException {
+        Address player1 = new Address(TestingHelper.getRandomAddressBytes());
+        Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
         Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
@@ -520,4 +570,13 @@ public class EventListenerTest {
         Assert.assertEquals(0, projectedState.getVotes().size());
     }
 
+
+    private boolean containsPlayer(Map<Integer, Player> playerMap, Address player) {
+        for (Player p : playerMap.values()) {
+            if (p.getPlayerAddress().equals(player)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

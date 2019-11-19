@@ -1,5 +1,6 @@
 package state;
 
+import types.Player;
 import types.Answer;
 import types.Game;
 import types.Statement;
@@ -20,8 +21,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class ProjectedState {
 
     private LinkedList<BlockTuple> blocks;
+
     // mappings of logId to the actual log
-    private Map<Integer, Address> players;
+    private Map<Integer, Player> players;
     private Map<Integer, Statement> statements;
     private Map<Integer, Vote> votes;
     private Map<Integer, Answer> answers;
@@ -48,9 +50,9 @@ public class ProjectedState {
         blocks.add(BlockTuple.of(blockNumber, blockHash, logIds));
     }
 
-    public int addPlayer(Address player) {
+    public int addPlayer(Player player) {
         currentEventId++;
-        Assertion.assertTrue(!players.containsValue(player));
+        Assertion.assertTrue(!containsPlayer(player.getPlayerAddress()));
         players.put(currentEventId, player);
         return currentEventId;
     }
@@ -58,7 +60,7 @@ public class ProjectedState {
     public int addStatement(Statement statement) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(players.containsValue(statement.getPlayer()));
+        Assertion.assertTrue(containsPlayer(statement.getPlayer()));
         Assertion.assertTrue(!containsStatementId(statement.getStatementId()));
         statements.put(currentEventId, statement);
         return currentEventId;
@@ -67,7 +69,7 @@ public class ProjectedState {
     public int addVote(Vote vote) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(players.containsValue(vote.getPlayer()));
+        Assertion.assertTrue(containsPlayer(vote.getPlayer()));
         Assertion.assertTrue(containsStatementId(vote.getStatementId()));
         votes.put(currentEventId, vote);
         return currentEventId;
@@ -85,33 +87,33 @@ public class ProjectedState {
      * Game methods
      */
 
-    public int stopGame() {
+    public int stopGame(byte[] transactionHash) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.setAsStopped(currentEventId);
+            currentGame.setAsStopped(currentEventId, transactionHash);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();
         }
     }
 
-    public int distributedPrize() {
+    public int distributedPrize(byte[] transactionHash) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.setPrizeDistributed(currentEventId);
+            currentGame.setPrizeDistributed(currentEventId, transactionHash);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();
         }
     }
 
-    public int addTransferValue(BigInteger value) {
+    public int addTransferValue(BigInteger value, byte[] transactionHash) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.addValueTransfer(currentEventId, value);
+            currentGame.addValueTransfer(currentEventId, value, transactionHash);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();
@@ -128,8 +130,12 @@ public class ProjectedState {
         return new LinkedList<>(blocks);
     }
 
-    public Map<Integer, Address> getPlayers() {
-        return Collections.unmodifiableMap(players);
+    public Map<Integer, Player> getPlayers() {
+        Map<Integer, Player> playersCopy = new HashMap<>();
+        for(int i: players.keySet()){
+            playersCopy.put(i, new Player(players.get(i)));
+        }
+        return Collections.unmodifiableMap(playersCopy);
     }
 
     public Map<Integer, Statement> getStatements() {
@@ -200,4 +206,8 @@ public class ProjectedState {
         }
     }
 
+
+    private boolean containsPlayer(Address player) {
+        return players.values().stream().anyMatch(p -> p.getPlayerAddress().equals(player));
+    }
 }

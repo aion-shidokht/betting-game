@@ -90,7 +90,7 @@ public class StatePopulatorTest {
         Assert.assertEquals(BlockTuple.of(log.blockNumber, log.blockHash, Arrays.asList(expectedId)), projectedState.getBlocks().getLast());
 
         Assert.assertEquals(1, projectedState.getPlayers().size());
-        Assert.assertEquals(player, projectedState.getPlayers().get(expectedId));
+        Assert.assertEquals(player, projectedState.getPlayers().get(expectedId).getPlayerAddress());
     }
 
     @Test

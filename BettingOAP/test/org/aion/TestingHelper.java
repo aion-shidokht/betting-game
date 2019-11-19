@@ -23,7 +23,8 @@ public class TestingHelper {
                 blockNumber,
                 transactionIndex,
                 0,
-                blockHash == null ? getRandomAddressBytes() : blockHash);
+                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
     }
 
     static Log getVotedLog(Address contractAddress,
@@ -41,7 +42,8 @@ public class TestingHelper {
                 blockNumber,
                 transactionIndex,
                 0,
-                blockHash == null ? getRandomAddressBytes() : blockHash);
+                                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
     }
 
     static Log getSubmittedStatementLog(Address contractAddress,
@@ -61,7 +63,8 @@ public class TestingHelper {
                 blockNumber,
                 transactionIndex,
                 0,
-                blockHash == null ? getRandomAddressBytes() : blockHash);
+                                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
     }
 
     static Log getRevealedAnswerLog(Address contractAddress,
@@ -77,7 +80,8 @@ public class TestingHelper {
                 blockNumber,
                 transactionIndex,
                 0,
-                blockHash == null ? getRandomAddressBytes() : blockHash);
+                                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
     }
 
     static Log getNoTopicEvent(Address contractAddress,
@@ -91,7 +95,8 @@ public class TestingHelper {
                 blockNumber,
                 transactionIndex,
                 0,
-                blockHash == null ? getRandomAddressBytes() : blockHash);
+                                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
     }
 
     static byte[] getRandomAddressBytes() {

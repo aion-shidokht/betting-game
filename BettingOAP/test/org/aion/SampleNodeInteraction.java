@@ -244,7 +244,8 @@ public class SampleNodeInteraction {
                     receipt.getBlockNumber(),
                     0,
                     0,
-                    receipt.getBlockHash());
+                    receipt.getBlockHash(),
+                    receipt.getTransactionHash());
 
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | InvalidKeyException | SignatureException | IOException | InterruptedException e) {
             e.printStackTrace();

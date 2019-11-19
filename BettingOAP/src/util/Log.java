@@ -17,9 +17,10 @@ public class Log {
     public final byte[] blockHash;
     public final int transactionIndex;
     public final int logIndex;
+    public final byte[] transactionHash;
 
     public Log(Address address, byte[] data, List<byte[]> topics,
-               BigInteger blockNumber, int transactionIndex, int logIndex, byte[] blockHash) {
+               BigInteger blockNumber, int transactionIndex, int logIndex, byte[] blockHash, byte[] transactionHash) {
         this.address = address;
         this.data = Arrays.copyOf(data, data.length);
         this.topics = copyOfBytesList(topics);
@@ -27,6 +28,7 @@ public class Log {
         this.blockHash = Arrays.copyOf(blockHash, blockHash.length);
         this.transactionIndex = transactionIndex;
         this.logIndex = logIndex;
+        this.transactionHash = transactionHash;
     }
 
     public byte[] copyOfBlockHash() {
@@ -41,6 +43,12 @@ public class Log {
 
     public List<byte[]> copyOfTopics() {
         return copyOfBytesList(this.topics);
+    }
+
+    public byte[] copyOfTransactionHash() {
+        return (null != transactionHash)
+                ? Arrays.copyOf(this.transactionHash, this.transactionHash.length)
+                : null;
     }
 
     @Override

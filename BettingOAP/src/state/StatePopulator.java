@@ -4,8 +4,8 @@ import types.Answer;
 import types.BlockTuple;
 import types.Statement;
 import types.Vote;
+import types.Player;
 import internal.CriticalException;
-import org.aion.harness.kernel.Address;
 import util.Log;
 
 import java.math.BigInteger;
@@ -33,16 +33,16 @@ public class StatePopulator {
                     String eventTopic = new String(topics.get(0)).trim();
                     switch (eventTopic) {
                         case "Registered":
-                            addedLogId = projectedState.addPlayer(new Address(data));
+                            addedLogId = projectedState.addPlayer(Player.from(data, log.copyOfTransactionHash()));
                             break;
                         case "Voted":
-                            addedLogId = projectedState.addVote(Vote.from(topics, data));
+                            addedLogId = projectedState.addVote(Vote.from(topics, data, log.copyOfTransactionHash()));
                             break;
                         case "SubmittedStatement":
-                            addedLogId = projectedState.addStatement(Statement.from(topics, data));
+                            addedLogId = projectedState.addStatement(Statement.from(topics, data, log.copyOfTransactionHash()));
                             break;
                         case "RevealedAnswer":
-                            addedLogId = projectedState.addAnswer(Answer.from(topics, data));
+                            addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash()));
                             break;
                         default:
                             throw new CriticalException("First event topic not recognized. " + eventTopic);
@@ -53,13 +53,13 @@ public class StatePopulator {
                     switch (eventData) {
                         // todo update after the contract finalization
                         case "DistributedPrize":
-                            addedLogId = projectedState.distributedPrize();
+                            addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash());
                             break;
                         case "UpdatedBalance":
-                            addedLogId = projectedState.addTransferValue(new BigInteger(eventData));
+                            addedLogId = projectedState.addTransferValue(new BigInteger(eventData), log.copyOfTransactionHash());
                             break;
                         case "GameStopped":
-                            addedLogId = projectedState.stopGame();
+                            addedLogId = projectedState.stopGame(log.copyOfTransactionHash());
                             break;
                         case "BettingContractDeployed":
                             addedLogId = projectedState.deployedContract();

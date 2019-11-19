@@ -23,6 +23,7 @@ public class LogBuilder {
     private byte[] blockHash = null;
     private Integer transactionIndex = null;
     private Integer logIndex = null;
+    private byte[] transactionHash = null;
 
     public LogBuilder address(Address address) {
         this.address = address;
@@ -59,6 +60,11 @@ public class LogBuilder {
         return this;
     }
 
+    public LogBuilder transactionHash(byte[] transactionHash) {
+        this.transactionHash = transactionHash;
+        return this;
+    }
+
     public Log build() {
         if (this.address == null) {
             throw new NullPointerException("Cannot build Log with null address!");
@@ -78,7 +84,7 @@ public class LogBuilder {
 
         List<byte[]> topics = (this.topics == null) ? Collections.emptyList() : this.topics;
 
-        return new Log(this.address, this.data, topics, this.blockNumber, this.transactionIndex, this.logIndex, this.blockHash);
+        return new Log(this.address, this.data, topics, this.blockNumber, this.transactionIndex, this.logIndex, this.blockHash, this.transactionHash);
     }
 
     public Log buildFromJsonString(String jsonString) throws DecoderException {
@@ -91,6 +97,7 @@ public class LogBuilder {
         String blockHash = jsonParser.attributeToString("blockHash");
         String transactionIndex = jsonParser.attributeToString("transactionIndex");
         String logIndex = jsonParser.attributeToString("logIndex");
+        String transactionHash = jsonParser.attributeToString("transactionHash");
 
         return new LogBuilder()
                 .address(new Address(Hex.decodeHex(address)))
@@ -100,6 +107,7 @@ public class LogBuilder {
                 .transactionIndex(Integer.parseInt(transactionIndex, 16))
                 .logIndex(Integer.parseInt(logIndex, 16))
                 .blockHash(Hex.decodeHex(blockHash))
+                .transactionHash(Hex.decodeHex(transactionHash))
                 .build();
     }
 
@@ -135,5 +143,6 @@ public class LogBuilder {
         this.blockNumber = null;
         this.transactionIndex = null;
         this.logIndex = null;
+        this.transactionHash = null;
     }
 }
