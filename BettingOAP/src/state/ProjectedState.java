@@ -43,11 +43,11 @@ public class ProjectedState {
         currentGame = new Game();
     }
 
-    public void addBlockTuple(BigInteger blockNumber, byte[] blockHash, List<Integer> logIds) {
+    public void addBlockTuple(BlockTuple blockTuple) {
         if (blocks.size() > 0) {
-            Assertion.assertTrue(blocks.getLast().getBlockNumber().compareTo(blockNumber) < 0);
+            Assertion.assertTrue(blocks.getLast().getBlockNumber().compareTo(blockTuple.getBlockNumber()) < 0);
         }
-        blocks.add(BlockTuple.of(blockNumber, blockHash, logIds));
+        blocks.add(blockTuple);
     }
 
     public int addPlayer(Player player) {
@@ -61,7 +61,7 @@ public class ProjectedState {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
         Assertion.assertTrue(containsPlayer(statement.getPlayer()));
-        Assertion.assertTrue(!containsStatementId(statement.getStatementId()));
+        Assertion.assertTrue(!findStatementId(statement.getStatementId()).isPresent());
         statements.put(currentEventId, statement);
         return currentEventId;
     }
@@ -70,7 +70,9 @@ public class ProjectedState {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
         Assertion.assertTrue(containsPlayer(vote.getPlayer()));
-        Assertion.assertTrue(containsStatementId(vote.getStatementId()));
+        Optional<Statement> s = findStatementId(vote.getStatementId());
+        Assertion.assertTrue(s.isPresent());
+        s.get().addVoteId(currentEventId);
         votes.put(currentEventId, vote);
         return currentEventId;
     }
@@ -78,7 +80,9 @@ public class ProjectedState {
     public int addAnswer(Answer answer) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(containsStatementId(answer.getStatementId()));
+        Optional<Statement> s = findStatementId(answer.getStatementId());
+        Assertion.assertTrue(s.isPresent());
+        s.get().setAnswerEventId(currentEventId);
         answers.put(currentEventId, answer);
         return currentEventId;
     }
@@ -171,8 +175,8 @@ public class ProjectedState {
         }
     }
 
-    private boolean containsStatementId(Integer id) {
-        return statements.values().stream().anyMatch(s -> s.getStatementId() == id);
+    private Optional<Statement> findStatementId(Integer id) {
+        return statements.values().stream().filter(s -> s.getStatementId() == id).findAny();
     }
 
     public void clear() {
@@ -181,7 +185,12 @@ public class ProjectedState {
         statements.clear();
         votes.clear();
         answers.clear();
-        currentGame.clear();
+        gameLock.writeLock().lock();
+        try {
+            currentGame.clear();
+        } finally {
+            gameLock.writeLock().unlock();
+        }
     }
 
     public void revertBlocks(int count) {
@@ -196,16 +205,29 @@ public class ProjectedState {
     private void revertLogs(Set<Integer> logIds) {
         players.keySet().removeAll(logIds);
         statements.keySet().removeAll(logIds);
-        votes.keySet().removeAll(logIds);
-        answers.keySet().removeAll(logIds);
-        gameLock.writeLock().lock();
-        try {
-            currentGame.revert(logIds);
-        } finally {
-            gameLock.writeLock().unlock();
+        for (int id : logIds) {
+            Vote v = votes.remove(id);
+            Answer a = answers.remove(id);
+            Optional<Statement> s = Optional.empty();
+            if (v != null) {
+                s = findStatementId(v.getStatementId());
+                s.ifPresent(statement -> statement.removeVoteId(id));
+            }
+
+            if (a != null) {
+                if (!s.isPresent()) {
+                    s = findStatementId(a.getStatementId());
+                }
+                s.ifPresent(Statement::resetAnswerId);
+            }
+            gameLock.writeLock().lock();
+            try {
+                currentGame.revert(logIds);
+            } finally {
+                gameLock.writeLock().unlock();
+            }
         }
     }
-
 
     private boolean containsPlayer(Address player) {
         return players.values().stream().anyMatch(p -> p.getPlayerAddress().equals(player));

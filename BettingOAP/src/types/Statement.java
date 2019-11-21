@@ -5,7 +5,7 @@ import org.aion.harness.kernel.Address;
 import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.util.*;
 
 public class Statement {
     private final Address player;
@@ -13,6 +13,9 @@ public class Statement {
     private final byte[] answerHash;
     private final String statement;
     private final byte[] transactionHash;
+    // internal ids associated with events.
+    private final Set<Integer> voteEventIds;
+    private int answerEventId;
 
     private Statement(Address player, int statementId, byte[] answerHash, String statement, byte[] transactionHash) {
         this.player = player;
@@ -20,6 +23,8 @@ public class Statement {
         this.answerHash = answerHash;
         this.statement = statement;
         this.transactionHash = transactionHash;
+        voteEventIds = new HashSet<>();
+        answerEventId = -1;
     }
 
     public static Statement from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
@@ -57,6 +62,32 @@ public class Statement {
         this.answerHash = statement.answerHash;
         this.statement = statement.statement;
         this.transactionHash = statement.transactionHash;
+        this.answerEventId = statement.answerEventId;
+        this.voteEventIds = statement.voteEventIds;
+    }
+
+    public Set<Integer> getVoteEventIds() {
+        return voteEventIds;
+    }
+
+    public Integer getAnswerEventId() {
+        return answerEventId;
+    }
+
+    public void addVoteId(int id) {
+        voteEventIds.add(id);
+    }
+
+    public boolean removeVoteId(int id) {
+        return voteEventIds.remove(id);
+    }
+
+    public void setAnswerEventId(int answerEventId) {
+        this.answerEventId = answerEventId;
+    }
+
+    public void resetAnswerId() {
+        this.answerEventId = -1;
     }
 
     @Override
@@ -67,6 +98,8 @@ public class Statement {
                 ", answerHash=" + Hex.encodeHexString(answerHash) +
                 ", statement='" + statement + '\'' +
                 ", transactionHash=" + Hex.encodeHexString(transactionHash) +
+                ", voteEventIds=" + voteEventIds +
+                ", answerEventId=" + answerEventId +
                 '}';
     }
 }

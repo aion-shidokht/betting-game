@@ -153,6 +153,10 @@ public class StatePopulatorTest {
         Assert.assertArrayEquals(answer.getBytes(), projectedState.getVotes().get(expectedId).getGuessedAnswer());
         Assert.assertEquals(player, projectedState.getVotes().get(expectedId).getPlayer());
         Assert.assertEquals(statementId, projectedState.getVotes().get(expectedId).getStatementId());
+
+        Assert.assertEquals(1, projectedState.getStatements().size());
+        Assert.assertEquals(-1, (int) projectedState.getStatements().get(expectedId -1).getAnswerEventId());
+        Assert.assertEquals(1, projectedState.getStatements().get(expectedId -1).getVoteEventIds().size());
     }
 
     @Test
@@ -183,6 +187,10 @@ public class StatePopulatorTest {
         Assert.assertEquals(1, projectedState.getAnswers().size());
         Assert.assertArrayEquals(answer.getBytes(), projectedState.getAnswers().get(expectedId).getAnswer());
         Assert.assertEquals(statementId, projectedState.getAnswers().get(expectedId).getStatementId());
+
+        Assert.assertEquals(1, projectedState.getStatements().size());
+        Assert.assertEquals(expectedId, (int) projectedState.getStatements().get(expectedId -1).getAnswerEventId());
+        Assert.assertEquals(0, projectedState.getStatements().get(expectedId -1).getVoteEventIds().size());
     }
 
     @Test

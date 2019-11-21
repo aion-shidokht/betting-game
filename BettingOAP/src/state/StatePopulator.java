@@ -6,6 +6,7 @@ import types.Statement;
 import types.Vote;
 import types.Player;
 import internal.CriticalException;
+import types.BlockTuple;
 import util.Log;
 
 import java.math.BigInteger;
@@ -70,7 +71,7 @@ public class StatePopulator {
                 }
                 ids.add(addedLogId);
             }
-            projectedState.addBlockTuple(e.getKey(), blockHash, ids);
+            projectedState.addBlockTuple(BlockTuple.of(e.getKey(), blockHash, ids));
         }
 
     }
