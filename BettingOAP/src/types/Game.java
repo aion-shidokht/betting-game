@@ -1,5 +1,6 @@
 package types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import internal.Assertion;
 import org.aion.harness.kernel.Address;
 import util.Pair;
@@ -69,10 +70,11 @@ public class Game {
         return winners.value;
     }
 
-    public BigInteger getTotalPrizeAmount(){
+    public BigInteger getTotalPrizeAmount() {
         return transferredValues.values().stream().reduce(BigInteger.ZERO, BigInteger::add);
     }
 
+    @JsonIgnore
     public Game getCopy(){
         return new Game(isStopped, prizeDistributed, winners, transferredValues, transactionHashes);
     }

@@ -35,7 +35,7 @@ public class TransactionSenderTest {
 
     NodeConnection nodeConnection = mock(NodeConnection.class);
 
-    private LinkedBlockingDeque<SignedTransaction> rawTransactions;
+    private LinkedBlockingDeque<byte[]> rawTransactions;
     private LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes;
     private LinkedBlockingDeque<TransactionReceipt> transactionReceipts;
     private TransactionSender transactionSender;
@@ -97,7 +97,7 @@ public class TransactionSenderTest {
     @Test
     public void testSendTransactionSuccess() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         String receiptHash = "15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1";
-        when(nodeConnection.sendSignedTransaction(any(SignedTransaction.class))).thenReturn(
+        when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
                         new ReceiptHash(ByteUtil.hexStringToBytes(receiptHash)),
                         System.currentTimeMillis(),
@@ -118,7 +118,7 @@ public class TransactionSenderTest {
                 new byte[0],
                 BigInteger.ONE);
 
-        rawTransactions.add(rawTransaction);
+        rawTransactions.add(rawTransaction.getSignedTransactionBytes());
 
         startThreads();
 
@@ -133,7 +133,7 @@ public class TransactionSenderTest {
     @Test
     public void testSendTransactionFail() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         String receiptHash = "15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1";
-        when(nodeConnection.sendSignedTransaction(any(SignedTransaction.class))).thenReturn(
+        when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
                         new ReceiptHash(ByteUtil.hexStringToBytes(receiptHash)),
                         System.currentTimeMillis(),
@@ -151,7 +151,7 @@ public class TransactionSenderTest {
                 new byte[0],
                 BigInteger.ONE);
 
-        rawTransactions.add(rawTransaction);
+        rawTransactions.add(rawTransaction.getSignedTransactionBytes());
 
         startThreads();
 

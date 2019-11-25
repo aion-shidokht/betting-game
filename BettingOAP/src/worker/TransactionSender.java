@@ -1,9 +1,9 @@
 package worker;
 
 import internal.CriticalException;
-import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.result.RpcResult;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.NodeConnection;
@@ -18,7 +18,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class TransactionSender implements Runnable {
 
-    private LinkedBlockingDeque<SignedTransaction> rawTransactions;
+    private LinkedBlockingDeque<byte[]> rawTransactions;
     private LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes;
     private BlockNumberCollector blockNumberCollector;
     private NodeConnection nodeConnection;
@@ -28,7 +28,7 @@ public class TransactionSender implements Runnable {
     private final Logger logger = LoggerFactory.getLogger("TransactionSender");
 
     public TransactionSender(BlockNumberCollector blockNumberCollector,
-                             LinkedBlockingDeque<SignedTransaction> rawTransactions,
+                             LinkedBlockingDeque<byte[]> rawTransactions,
                              LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes,
                              NodeConnection nodeConnection,
                              long pollIntervalMilliSeconds,
@@ -46,7 +46,7 @@ public class TransactionSender implements Runnable {
         while (!shutdown) {
             try {
                 if (transactionHashes.remainingCapacity() > 0) {
-                    SignedTransaction toSend = rawTransactions.poll();
+                    byte[] toSend = rawTransactions.poll();
                     if (toSend != null) {
                         Long blockNumber = blockNumberCollector.getCurrentBlockNumber();
                         // this should only be null during startup
@@ -62,7 +62,7 @@ public class TransactionSender implements Runnable {
                             transactionHashes.offer(Pair.of(hash, blockNumber));
                         } else {
                             //retry later?
-                            logger.debug("Blk: " + blockNumber + ", Could not send " + toSend.toString());
+                            logger.debug("Blk: " + blockNumber + ", Could not send " + Hex.encodeHexString(toSend));
                         }
 
                     } else {

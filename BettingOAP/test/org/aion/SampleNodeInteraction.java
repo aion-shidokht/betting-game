@@ -51,7 +51,7 @@ public class SampleNodeInteraction {
     private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
 
     private static BlockNumberCollector blockNumberCollector;
-    private static LinkedBlockingDeque<SignedTransaction> rawTransactions;
+    private static LinkedBlockingDeque<byte[]> rawTransactions;
     private static LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes;
     private static TransactionSender transactionSender;
     private static ReceiptCollector receiptCollector;
@@ -135,47 +135,47 @@ public class SampleNodeInteraction {
 
     @Test
     public void testFullPath() throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InterruptedException {
-        rawTransactions.add(register(playerPrivateKey.getAddress()));
+        rawTransactions.add(register(playerPrivateKey.getAddress()).getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(register(ownerPrivateKey.getAddress()));
+        rawTransactions.add(register(ownerPrivateKey.getAddress()).getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(submitStatement(playerPrivateKey, "Q0".getBytes(), "A0".getBytes(), "S0".getBytes(), playerNonce));
+        rawTransactions.add(submitStatement(playerPrivateKey, "Q0".getBytes(), "A0".getBytes(), "S0".getBytes(), playerNonce).getSignedTransactionBytes());
         playerNonce = playerNonce.add(BigInteger.ONE);
 
         Thread.sleep(20000);
 
-        rawTransactions.add(submitStatement(ownerPrivateKey, "Q1".getBytes(), "A1".getBytes(), "S1".getBytes(), ownerNonce));
+        rawTransactions.add(submitStatement(ownerPrivateKey, "Q1".getBytes(), "A1".getBytes(), "S1".getBytes(), ownerNonce).getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(vote(ownerPrivateKey, 1, "A0".getBytes(), ownerNonce));
+        rawTransactions.add(vote(ownerPrivateKey, 1, "A0".getBytes(), ownerNonce).getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(vote(playerPrivateKey, 2, "A0".getBytes(), playerNonce));
+        rawTransactions.add(vote(playerPrivateKey, 2, "A0".getBytes(), playerNonce).getSignedTransactionBytes());
         playerNonce = playerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(endGame());
+        rawTransactions.add(endGame().getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(revealAnswer(ownerPrivateKey, 1, "A0".getBytes(), "S0".getBytes(), ownerNonce));
+        rawTransactions.add(revealAnswer(ownerPrivateKey, 1, "A0".getBytes(), "S0".getBytes(), ownerNonce).getSignedTransactionBytes());
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         Thread.sleep(10000);
 
-        rawTransactions.add(revealAnswer(ownerPrivateKey, 2, "A1".getBytes(), "S1".getBytes(), ownerNonce));
+        rawTransactions.add(revealAnswer(ownerPrivateKey, 2, "A1".getBytes(), "S1".getBytes(), ownerNonce).getSignedTransactionBytes());
 
         Thread.sleep(50000);
 

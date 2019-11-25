@@ -2,13 +2,9 @@ package util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import org.aion.avm.core.util.LogSizeUtils;
 import org.aion.harness.kernel.Address;
-import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.RPC;
-import org.aion.harness.main.tools.InternalRpcResult;
-import org.aion.harness.main.tools.JsonStringParser;
-import org.aion.harness.main.tools.RpcCaller;
+import org.aion.harness.main.tools.*;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
@@ -19,6 +15,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class NodeConnection {
 
@@ -34,8 +31,30 @@ public class NodeConnection {
         return rpc.blockNumber();
     }
 
-    public RpcResult<ReceiptHash> sendSignedTransaction(SignedTransaction transaction) throws InterruptedException {
-        return rpc.sendSignedTransaction(transaction);
+    public RpcResult<ReceiptHash> sendSignedTransaction(byte[] signedTransactionBytes) throws InterruptedException {
+//        return rpc.sendSignedTransaction(transaction);
+        String params = Hex.encodeHexString(signedTransactionBytes);
+        String payload = RpcPayload.generatePayload(RpcMethod.SEND_RAW_TRANSACTION, params);
+//            InternalRpcResult internalResult = this.rpc.call(payload, false);
+        //todo replace later
+        RpcCaller rpcCaller = new RpcCaller("127.0.0.1", "8545");
+        InternalRpcResult internalResult = rpcCaller.call(payload, false);
+        if (internalResult.success) {
+            JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+            String result = outputParser.attributeToString("result");
+            if (result == null) {
+                return RpcResult.unsuccessful("No receipt hash was returned, transaction was likely rejected.");
+            } else {
+                try {
+                    return RpcResult.successful(new ReceiptHash(Hex.decodeHex(result)), internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+                } catch (DecoderException var9) {
+                    return RpcResult.unsuccessful(var9.toString());
+                }
+            }
+        } else {
+            return RpcResult.unsuccessful(internalResult.error);
+        }
+
     }
 
     public RpcResult<TransactionReceipt> getTransactionReceipt(ReceiptHash receiptHash) throws InterruptedException {
@@ -74,7 +93,7 @@ public class NodeConnection {
             paramsStart += "\"topics\":[";
             int i = 1;
             for (byte[] topic : topics) {
-                paramsStart += "\"0x" + Hex.encodeHexString(LogSizeUtils.truncatePadTopic(topic));
+                paramsStart += "\"0x" + Hex.encodeHexString(truncatePadTopic(topic));
                 if (i < topics.size()) {
                     i++;
                     paramsStart += "\", ";
@@ -92,5 +111,26 @@ public class NodeConnection {
                 "\", \"toBlock\": \"" +
                 toBlock + "\"" +
                 payloadEnd;
+    }
+
+    private static byte[] truncatePadTopic(byte[] topic) {
+        int TOPIC_SIZE = 32;
+        byte[] result = new byte[TOPIC_SIZE];
+        if (null == topic) {
+            throw new NullPointerException();
+        } else if (topic.length < TOPIC_SIZE) {
+            // Too short:  zero-pad.
+            System.arraycopy(topic, 0, result, 0, topic.length);
+            for (int i = topic.length; i < TOPIC_SIZE; ++i) {
+                result[i] = 0;
+            }
+        } else if (topic.length > TOPIC_SIZE) {
+            // Too long:  truncate.
+            System.arraycopy(topic, 0, result, 0, TOPIC_SIZE);
+        } else {
+            // Just the right size.
+            System.arraycopy(topic, 0, result, 0, TOPIC_SIZE);
+        }
+        return result;
     }
 }

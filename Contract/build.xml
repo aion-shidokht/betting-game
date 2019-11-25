@@ -7,7 +7,7 @@
     <property name="dir.local.src.test" value="${dir.local.workspace}/test"/>
     <property name="dir.local.src.main" value="${dir.local.workspace}/src"/>
     <property name="dir.local.testreports" value="${dir.local.workspace}/testreports"/>
-    <property name="dir.global.lib" value="../lib"/>
+    <property name="dir.global.lib" value="${dir.local.workspace}/lib"/>
     <property name="junit.heap" value="32m"/>
     <property name="junit.threads" value="4"/>
 
