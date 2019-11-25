@@ -1,6 +1,6 @@
 package util;
 
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;

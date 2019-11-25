@@ -1,7 +1,8 @@
 package org.aion;
 
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,8 +118,8 @@ public class StatePopulatorTest {
         Assert.assertEquals(BlockTuple.of(log2.blockNumber, log2.blockHash, Arrays.asList(lastExpectedId)), projectedState.getBlocks().getLast());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
-        Assert.assertArrayEquals(answerHash, projectedState.getStatements().get(lastExpectedId).getAnswerHash());
-        Assert.assertEquals(player, projectedState.getStatements().get(lastExpectedId).getPlayer());
+        Assert.assertEquals("0x" + Hex.encodeHexString(answerHash), projectedState.getStatements().get(lastExpectedId).getAnswerHash());
+        Assert.assertEquals(player, projectedState.getStatements().get(lastExpectedId).getPlayerAddress());
         Assert.assertEquals(statementId, projectedState.getStatements().get(lastExpectedId).getStatementId());
         Assert.assertEquals(new String(statement.getBytes()), projectedState.getStatements().get(lastExpectedId).getStatementString());
     }
@@ -150,8 +151,8 @@ public class StatePopulatorTest {
 
         int expectedId = 3;
         Assert.assertEquals(1, projectedState.getVotes().size());
-        Assert.assertArrayEquals(answer.getBytes(), projectedState.getVotes().get(expectedId).getGuessedAnswer());
-        Assert.assertEquals(player, projectedState.getVotes().get(expectedId).getPlayer());
+        Assert.assertEquals(answer, projectedState.getVotes().get(expectedId).getGuessedAnswer());
+        Assert.assertEquals(player, projectedState.getVotes().get(expectedId).getPlayerAddress());
         Assert.assertEquals(statementId, projectedState.getVotes().get(expectedId).getStatementId());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
@@ -185,7 +186,7 @@ public class StatePopulatorTest {
 
         int expectedId = 3;
         Assert.assertEquals(1, projectedState.getAnswers().size());
-        Assert.assertArrayEquals(answer.getBytes(), projectedState.getAnswers().get(expectedId).getAnswer());
+        Assert.assertEquals(answer, projectedState.getAnswers().get(expectedId).getAnswer());
         Assert.assertEquals(statementId, projectedState.getAnswers().get(expectedId).getStatementId());
 
         Assert.assertEquals(1, projectedState.getStatements().size());

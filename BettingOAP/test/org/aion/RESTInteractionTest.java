@@ -1,6 +1,6 @@
 package org.aion;
 
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.types.ReceiptHash;
@@ -52,7 +52,7 @@ public class RESTInteractionTest {
     private EventListener eventListener;
     private Log deployLog;
     private byte[] hash = new byte[32];
-    private org.aion.harness.kernel.Address Address = new Address(new byte[32]);
+    private Address Address = new Address(new byte[32]);
     private Thread eventListenerThread;
     private HttpServer server;
     private String URI;
@@ -224,7 +224,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 7, 9);
 
-        Assert.assertEquals(367, response.length());
+        Assert.assertEquals(461, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -270,7 +270,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 5, 7, 9);
 
-        Assert.assertEquals(367, response.length());
+        Assert.assertEquals(461, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -286,9 +286,9 @@ public class RESTInteractionTest {
                 2_000_000L, 1_000_000L, 1_000_000,
                 0, new byte[0], new byte[0], ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"), new byte[0],
                 BigInteger.valueOf(currentBlockNumber),
-                new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new ArrayList<>(), 1);
 
         when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
@@ -410,7 +410,7 @@ public class RESTInteractionTest {
         startThreads();
 
         String response = getPlayers(target1);
-        Assert.assertEquals(303, response.length());
+        Assert.assertEquals(389, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertNotNull(obj);

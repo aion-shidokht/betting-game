@@ -3,7 +3,7 @@ package util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.aion.harness.main.tools.JsonStringParser;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;

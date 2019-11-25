@@ -2,7 +2,7 @@ package util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.tools.*;
 import org.aion.harness.main.types.ReceiptHash;

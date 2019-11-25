@@ -1,24 +1,25 @@
 package types;
 
 import internal.Assertion;
-import org.aion.harness.kernel.Address;
-import org.apache.commons.codec.binary.Hex;
+import org.aion.util.bytes.ByteUtil;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Statement {
-    private final Address player;
+    private final Address playerAddress;
     private final int statementId;
-    private final byte[] answerHash;
+    private final String answerHash;
     private final String statement;
-    private final byte[] transactionHash;
+    private final String transactionHash;
     // internal ids associated with events.
     private final Set<Integer> voteEventIds;
     private int answerEventId;
 
-    private Statement(Address player, int statementId, byte[] answerHash, String statement, byte[] transactionHash) {
-        this.player = player;
+    private Statement(Address playerAddress, int statementId, String answerHash, String statement, String transactionHash) {
+        this.playerAddress = playerAddress;
         this.statementId = statementId;
         this.answerHash = answerHash;
         this.statement = statement;
@@ -30,34 +31,34 @@ public class Statement {
     public static Statement from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
         Assertion.assertTopicSize(topics, 4);
         return new Statement(new Address(topics.get(1)),
-                new BigInteger(Hex.encodeHexString(topics.get(2)), 16).intValue(),
-                topics.get(3),
+                new BigInteger(ByteUtil.toHexString(topics.get(2)), 16).intValue(),
+                "0x" + ByteUtil.toHexString(topics.get(3)),
                 new String(data),
-                transactionHash);
+                "0x" + ByteUtil.toHexString(transactionHash));
     }
 
-    public Address getPlayer() {
-        return player;
+    public Address getPlayerAddress() {
+        return playerAddress;
     }
 
     public int getStatementId() {
         return statementId;
     }
 
-    public byte[] getAnswerHash() {
-        return answerHash.clone();
+    public String getAnswerHash() {
+        return answerHash;
     }
 
     public String getStatementString() {
         return statement;
     }
 
-    public byte[] getTransactionHash() {
-        return transactionHash.clone();
+    public String getTransactionHash() {
+        return transactionHash;
     }
 
     public Statement(Statement statement){
-        this.player = statement.player;
+        this.playerAddress = statement.playerAddress;
         this.statementId = statement.statementId;
         this.answerHash = statement.answerHash;
         this.statement = statement.statement;
@@ -93,11 +94,11 @@ public class Statement {
     @Override
     public String toString() {
         return "Statement{" +
-                "player=" + player +
+                "playerAddress=" + playerAddress +
                 ", statementId=" + statementId +
-                ", answerHash=" + Hex.encodeHexString(answerHash) +
+                ", answerHash=" + answerHash +
                 ", statement='" + statement + '\'' +
-                ", transactionHash=" + Hex.encodeHexString(transactionHash) +
+                ", transactionHash=" + transactionHash +
                 ", voteEventIds=" + voteEventIds +
                 ", answerEventId=" + answerEventId +
                 '}';

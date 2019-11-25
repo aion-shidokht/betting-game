@@ -1,6 +1,6 @@
 package org.aion;
 
-import org.aion.harness.kernel.Address;
+import types.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.types.ReceiptHash;
@@ -114,7 +114,7 @@ public class TransactionSenderTest {
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
-                new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new byte[0],
                 BigInteger.ONE);
 
@@ -147,7 +147,7 @@ public class TransactionSenderTest {
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
-                new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new byte[0],
                 BigInteger.ONE);
 
@@ -174,8 +174,8 @@ public class TransactionSenderTest {
             2_000_000L, 1_000_000L, 1_000_000,
             0, new byte[0], new byte[0], new byte[0], new byte[0],
             BigInteger.valueOf(currentBlockNumber),
-            new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-            new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-            new Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
             new ArrayList<>(), 1);
 }

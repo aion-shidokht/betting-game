@@ -1,20 +1,17 @@
 package types;
 
-import org.aion.harness.kernel.Address;
-import org.apache.commons.codec.binary.Hex;
-
-import java.util.Arrays;
+import org.aion.util.bytes.ByteUtil;
 
 public class Player {
     private final Address playerAddress;
-    private final byte[] transactionHash;
+    private final String transactionHash;
 
-    public static Player from(byte[] data, byte[] transactionHash){
+    public static Player from(byte[] data, byte[] transactionHash) {
         return new Player(new Address(data),
-                transactionHash);
+                "0x" + ByteUtil.toHexString(transactionHash));
     }
 
-    private Player(Address playerAddress, byte[] transactionHash) {
+    private Player(Address playerAddress, String transactionHash) {
         this.playerAddress = playerAddress;
         this.transactionHash = transactionHash;
     }
@@ -23,8 +20,8 @@ public class Player {
         return playerAddress;
     }
 
-    public byte[] getTransactionHash() {
-        return transactionHash.clone();
+    public String getTransactionHash() {
+        return transactionHash;
     }
 
     public Player(Player player){
@@ -35,7 +32,7 @@ public class Player {
     public String toString() {
         return "Player{" +
                 "playerAddress=" + playerAddress +
-                ", transactionHash=" + Hex.encodeHexString(transactionHash) +
+                ", transactionHash=" + transactionHash +
                 '}';
     }
 }

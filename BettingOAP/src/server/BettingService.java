@@ -1,7 +1,6 @@
 package server;
 
 import main.SignedTransactionBuilder;
-import org.aion.harness.kernel.Address;
 import org.aion.util.conversions.Hex;
 import state.ProjectedState;
 import types.*;
@@ -10,7 +9,6 @@ import util.QueuePopulator;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;

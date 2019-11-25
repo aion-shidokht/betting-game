@@ -1,7 +1,6 @@
 package org.aion;
 
-import org.aion.harness.kernel.Address;
-import org.aion.util.conversions.Hex;
+import types.Address;
 import util.Log;
 
 import java.math.BigInteger;
@@ -18,7 +17,7 @@ public class TestingHelper {
                                 int transactionIndex,
                                 byte[] blockHash) {
         return new Log(contractAddress,
-                player.getAddressBytes(),
+                player.toBytes(),
                 Arrays.asList("Registered".getBytes()),
                 blockNumber,
                 transactionIndex,
@@ -37,7 +36,7 @@ public class TestingHelper {
         return new Log(contractAddress,
                 answer,
                 Arrays.asList("Voted".getBytes(),
-                        player.getAddressBytes(),
+                        player.toBytes(),
                         BigInteger.valueOf(statementId).toByteArray()),
                 blockNumber,
                 transactionIndex,
@@ -57,7 +56,7 @@ public class TestingHelper {
         return new Log(contractAddress,
                 statement,
                 Arrays.asList("SubmittedStatement".getBytes(),
-                        player.getAddressBytes(),
+                        player.toBytes(),
                         BigInteger.valueOf(statementId).toByteArray(),
                         answerHash),
                 blockNumber,

@@ -1,13 +1,7 @@
 package state;
 
-import types.Player;
-import types.Answer;
-import types.Game;
-import types.Statement;
-import types.Vote;
+import types.*;
 import internal.Assertion;
-import org.aion.harness.kernel.Address;
-import types.BlockTuple;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -60,7 +54,7 @@ public class ProjectedState {
     public int addStatement(Statement statement) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(containsPlayer(statement.getPlayer()));
+        Assertion.assertTrue(containsPlayer(statement.getPlayerAddress()));
         Assertion.assertTrue(!findStatementId(statement.getStatementId()).isPresent());
         statements.put(currentEventId, statement);
         return currentEventId;
@@ -69,7 +63,7 @@ public class ProjectedState {
     public int addVote(Vote vote) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(containsPlayer(vote.getPlayer()));
+        Assertion.assertTrue(containsPlayer(vote.getPlayerAddress()));
         Optional<Statement> s = findStatementId(vote.getStatementId());
         Assertion.assertTrue(s.isPresent());
         s.get().addVoteId(currentEventId);

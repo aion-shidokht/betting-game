@@ -78,7 +78,7 @@ public class SampleNodeInteraction {
         deployContract(ownerPrivateKey, ownerNonce);
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
-        NodeConnection nodeConnection = new NodeConnection(rpc, contract);
+        NodeConnection nodeConnection = new NodeConnection(rpc, new types.Address(contract.getAddressBytes()));
         long pollingIntervalMilliSeconds = 5000;
         blockNumberCollector = new BlockNumberCollector(nodeConnection, pollingIntervalMilliSeconds, 3);
 
@@ -238,7 +238,7 @@ public class SampleNodeInteraction {
             contract = receipt.getAddressOfDeployedContract().orElseThrow();
             System.out.println("Contract deployed to " + contract);
 
-            deployLog = new Log(contract,
+            deployLog = new Log(new types.Address(contract.getAddressBytes()),
                     Hex.decode("42657474696e67436f6e74726163744465706c6f796564"),
                     new ArrayList<>(),
                     receipt.getBlockNumber(),

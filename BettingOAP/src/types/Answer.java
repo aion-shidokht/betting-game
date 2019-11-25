@@ -1,25 +1,24 @@
 package types;
 
 import internal.Assertion;
-import org.apache.commons.codec.binary.Hex;
+import org.aion.util.bytes.ByteUtil;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 
 public class Answer {
     private final int statementId;
-    private final byte[] answer;
-    private final byte[] transactionHash;
+    private final String answer;
+    private final String transactionHash;
 
     public static Answer from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
         Assertion.assertTopicSize(topics, 2);
-        return new Answer(new BigInteger(Hex.encodeHexString(topics.get(1)), 16).intValue(),
-                data,
-                transactionHash);
+        return new Answer(new BigInteger(ByteUtil.toHexString(topics.get(1)), 16).intValue(),
+                new String(data),
+                "0x" + ByteUtil.toHexString(transactionHash));
     }
 
-    private Answer(int statementId, byte[] answer, byte[] transactionHash) {
+    private Answer(int statementId, String answer, String transactionHash) {
         this.statementId = statementId;
         this.answer = answer;
         this.transactionHash = transactionHash;
@@ -29,12 +28,12 @@ public class Answer {
         return statementId;
     }
 
-    public byte[] getAnswer() {
-        return answer.clone();
+    public String getAnswer() {
+        return answer;
     }
 
-    public byte[] getTransactionHash() {
-        return transactionHash.clone();
+    public String getTransactionHash() {
+        return transactionHash;
     }
 
     public Answer(Answer answer){
@@ -47,8 +46,8 @@ public class Answer {
     public String toString() {
         return "Answer{" +
                 "statementId=" + statementId +
-                ", answer=" + new String(answer) +
-                ", transactionHash=" + Hex.encodeHexString(transactionHash) +
+                ", answer=" + answer +
+                ", transactionHash=" + transactionHash +
                 '}';
     }
 }

@@ -1,5 +1,6 @@
 package types;
 
+import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
@@ -38,7 +39,7 @@ public class BlockTuple {
     public String toString() {
         return "BlockTuple{" +
                 "blockNumber=" + blockNumber +
-                ", blockHash=" + Hex.encodeHexString(blockHash) +
+                ", blockHash=" + ByteUtil.toHexString(blockHash) +
                 ", logIds=" + logIds +
                 '}';
     }

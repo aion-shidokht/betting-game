@@ -1,21 +1,19 @@
 package types;
 
 import internal.Assertion;
-import org.aion.harness.kernel.Address;
-import org.apache.commons.codec.binary.Hex;
+import org.aion.util.bytes.ByteUtil;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 
 public class Vote {
-    private final Address player;
+    private final Address playerAddress;
     private final int statementId;
-    private final byte[] guessedAnswer;
-    private final byte[] transactionHash;
+    private final String guessedAnswer;
+    private final String transactionHash;
 
-    private Vote(Address player, int statementId, byte[] guessedAnswer, byte[] transactionHash) {
-        this.player = player;
+    private Vote(Address playerAddress, int statementId, String guessedAnswer, String transactionHash) {
+        this.playerAddress = playerAddress;
         this.statementId = statementId;
         this.guessedAnswer = guessedAnswer;
         this.transactionHash = transactionHash;
@@ -25,29 +23,29 @@ public class Vote {
         Assertion.assertTopicSize(topics, 3);
         // topic[0] is Voted
         return new Vote(new Address(topics.get(1)),
-                new BigInteger(Hex.encodeHexString(topics.get(2)), 16).intValue(),
-                data,
-                transactionHash);
+                new BigInteger(ByteUtil.toHexString(topics.get(2)), 16).intValue(),
+                new String(data),
+                "0x" + ByteUtil.toHexString(transactionHash));
     }
 
-    public Address getPlayer() {
-        return player;
+    public Address getPlayerAddress() {
+        return playerAddress;
     }
 
     public int getStatementId() {
         return statementId;
     }
 
-    public byte[] getGuessedAnswer() {
-        return guessedAnswer.clone();
+    public String getGuessedAnswer() {
+        return guessedAnswer;
     }
 
-    public byte[] getTransactionHash() {
-        return transactionHash.clone();
+    public String getTransactionHash() {
+        return transactionHash;
     }
 
     public Vote(Vote vote){
-        this.player = vote.player;
+        this.playerAddress = vote.playerAddress;
         this.statementId = vote.statementId;
         this.guessedAnswer = vote.guessedAnswer;
         this.transactionHash = vote.transactionHash;
@@ -56,10 +54,10 @@ public class Vote {
     @Override
     public String toString() {
         return "Vote{" +
-                "player=" + player +
+                "playerAddress=" + playerAddress +
                 ", statementId=" + statementId +
-                ", guessedAnswer=" + new String(guessedAnswer) +
-                ", transactionHash=" + Hex.encodeHexString(transactionHash) +
+                ", guessedAnswer=" + guessedAnswer +
+                ", transactionHash=" + transactionHash +
                 '}';
     }
 }
