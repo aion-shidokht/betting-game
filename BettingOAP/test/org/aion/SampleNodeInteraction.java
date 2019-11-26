@@ -88,7 +88,7 @@ public class SampleNodeInteraction {
         LinkedBlockingDeque<TransactionReceipt> transactionReceipts = new LinkedBlockingDeque<>(100);
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
-        UserState userState = new UserState();
+        UserState userState = new UserState(projectedState, nodeConnection);
 
         transactionSender = new TransactionSender(blockNumberCollector,
                 rawTransactions,

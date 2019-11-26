@@ -1,21 +1,34 @@
 package state;
 
+import org.aion.harness.result.RpcResult;
 import org.aion.util.bytes.ByteUtil;
-import org.apache.commons.codec.binary.Hex;
+import types.*;
 import types.TransactionDetails;
 import org.aion.harness.kernel.Address;
+import util.NodeConnection;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Holds the current user transaction info
- * This is mainly used to provide feedback about the result of a transaction sent through the app
+ * This is mainly used to provide feedback about the result of a transaction sent through the app, and does queries on the projected state based on the UI needs.
  */
 public class UserState {
 
     // todo can be optimized depending on the user interface queries
-    private Map<String, List<TransactionDetails>> userTransactions = new ConcurrentHashMap<>();
+    private Map<String, List<TransactionDetails>> userTransactions;
+
+    private ProjectedState projectedState;
+    private NodeConnection nodeConnection;
+
+    public UserState(ProjectedState projectedState,
+                     NodeConnection nodeConnection) {
+        this.userTransactions = new ConcurrentHashMap<>();
+        this.projectedState = projectedState;
+        this.nodeConnection = nodeConnection;
+    }
 
     public void putTransaction(Address sender, TransactionDetails transactionDetails) {
         String addressString = ByteUtil.toHexString(sender.getAddressBytes());
@@ -25,6 +38,8 @@ public class UserState {
             userTransactions.put(addressString, Arrays.asList(transactionDetails));
         }
     }
+
+    // queried from front end
 
     public List<TransactionDetails> getTransactions(String user) {
         return userTransactions.get(user);
@@ -40,4 +55,35 @@ public class UserState {
         return null;
     }
 
+    public BigInteger getNonce(Address address) {
+        try {
+            RpcResult<BigInteger> nonceResult = nodeConnection.getNonce(address);
+            if (nonceResult.isSuccess()) {
+                return nonceResult.getResult();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Map<Integer, Statement> getStatements() {
+        return projectedState.getStatements();
+    }
+
+    public Map<Integer, Player> getPlayers() {
+        return projectedState.getPlayers();
+    }
+
+    public Map<Integer, Answer> getAnswers() {
+        return projectedState.getAnswers();
+    }
+
+    public Map<Integer, Vote> getVotes() {
+        return projectedState.getVotes();
+    }
+
+    public Game getGameStatus() {
+        return projectedState.getGameStatus();
+    }
 }

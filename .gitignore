@@ -39,3 +39,6 @@ build/
 out/
 testreports/
 target/
+
+# node modules
+node_modules/

@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import state.ProjectedState;
 import state.UserState;
 import types.TransactionDetails;
 import util.NodeConnection;
@@ -60,7 +61,7 @@ public class TransactionSenderTest {
         rawTransactions = new LinkedBlockingDeque<>(100);
         transactionHashes = new LinkedBlockingDeque<>(100);
 
-        userState = new UserState();
+        userState = new UserState(new ProjectedState(), nodeConnection);
 
         transactionSender = new TransactionSender(blockNumberCollector,
                 rawTransactions,

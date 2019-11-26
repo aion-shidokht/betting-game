@@ -1,14 +1,16 @@
 package server;
 
 import main.SignedTransactionBuilder;
+import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
-import state.ProjectedState;
+import state.UserState;
 import types.*;
 import util.QueuePopulator;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 public class BettingService {
 
     @Inject
-    ProjectedState projectedState;
+    UserState userState;
 
     @Inject
     QueuePopulator queuePopulator;
@@ -27,28 +29,28 @@ public class BettingService {
     @Path("/allStatements")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, Statement> getAllStatements() {
-        return projectedState.getStatements();
+        return userState.getStatements();
     }
 
     @GET
     @Path("/allPlayers")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, Player> getAllPlayers() {
-        return projectedState.getPlayers();
+        return userState.getPlayers();
     }
 
     @GET
     @Path("/allAnswers")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, Answer> getAllAnswers() {
-        return projectedState.getAnswers();
+        return userState.getAnswers();
     }
 
     @GET
     @Path("/votes")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, Vote> getVoteIds(@QueryParam("eventIds") final List<Integer> eventIds) {
-        Map<Integer, Vote> voteMap = projectedState.getVotes();
+        Map<Integer, Vote> voteMap = userState.getVotes();
         return eventIds.stream()
                 .filter(voteMap::containsKey)
                 .collect(Collectors.toMap(Function.identity(), voteMap::get));
@@ -58,14 +60,28 @@ public class BettingService {
     @Path("/answer")
     @Produces(MediaType.APPLICATION_JSON)
     public Answer getAnswerId(@QueryParam("eventId") final Integer eventId) {
-        return projectedState.getAnswers().get(eventId);
+        return userState.getAnswers().get(eventId);
     }
 
     @GET
     @Path("/gameStatus")
     @Produces(MediaType.APPLICATION_JSON)
     public Game getGameStatus() {
-        return projectedState.getGameStatus();
+        return userState.getGameStatus();
+    }
+
+    @GET
+    @Path("/getNonce")
+    @Produces(MediaType.APPLICATION_JSON)
+    public BigInteger getGameStatus(@QueryParam("address") final String address) {
+        return userState.getNonce(new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes(address)));
+    }
+
+    @GET
+    @Path("/getTransactions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<TransactionDetails> getTransactions(@QueryParam("address") final String address) {
+        return userState.getTransactions(address);
     }
 
     @POST

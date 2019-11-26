@@ -5,6 +5,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import state.ProjectedState;
+import state.UserState;
 import util.QueuePopulator;
 
 import java.net.URI;
@@ -27,22 +28,22 @@ public class SimpleHttpServer {
     }
 
 
-    public static HttpServer startServer(ProjectedState projectedState, QueuePopulator queuePopulator) {
+    public static HttpServer startServer(UserState userState, QueuePopulator queuePopulator) {
         // create a resource config that scans for JAX-RS resources and providers
-        final ResourceConfig rc = createResourceConfig(projectedState, queuePopulator);
+        final ResourceConfig rc = createResourceConfig(userState, queuePopulator);
 
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 
-    private static ResourceConfig createResourceConfig(ProjectedState projectedState, QueuePopulator queuePopulator) {
+    private static ResourceConfig createResourceConfig(UserState userState, QueuePopulator queuePopulator) {
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.packages("server");
         resourceConfig.register(new AbstractBinder() {
             @Override
             public void configure() {
-                bind(projectedState).to(ProjectedState.class);
+                bind(userState).to(UserState.class);
                 bind(queuePopulator).to(QueuePopulator.class);
             }
         });

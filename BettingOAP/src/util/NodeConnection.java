@@ -85,6 +85,10 @@ public class NodeConnection {
         return logArray;
     }
 
+    public RpcResult<BigInteger> getNonce(org.aion.harness.kernel.Address address) throws InterruptedException {
+        return rpc.getNonce(address);
+    }
+
     private String getLogsPayload(BigInteger fromBlock, String toBlock, Set<byte[]> topics) {
         String payloadStart = "{\"jsonrpc\":\"2.0\",\"method\":\"";
         String methodName = "eth_getLogs";

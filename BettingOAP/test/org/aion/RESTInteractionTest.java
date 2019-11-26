@@ -4,6 +4,7 @@ import types.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.types.ReceiptHash;
+import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
 import org.aion.util.bytes.ByteUtil;
@@ -57,7 +58,7 @@ public class RESTInteractionTest {
     private Thread eventListenerThread;
     private HttpServer server;
     private String URI;
-    private ProjectedState projectedState;
+    private UserState userState;
 
     private BlockNumberCollector blockNumberCollector;
     private TransactionSender transactionSender;
@@ -84,12 +85,12 @@ public class RESTInteractionTest {
                 hash,
                 hash);
 
-        projectedState = new ProjectedState();
+        ProjectedState projectedState = new ProjectedState();
 
         long pollingIntervalMillis = 50;
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
-        UserState userState = new UserState();
+        userState = new UserState(projectedState, nodeConnection);
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
@@ -285,14 +286,30 @@ public class RESTInteractionTest {
 
     @Test
     public void sendTransaction() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, DecoderException {
+        PrivateKey privateKey = PrivateKey.fromBytes(
+                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
+        org.aion.harness.kernel.Address sender = new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"));
+        SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
+                privateKey,
+                BigInteger.ONE,
+                sender,
+                new byte[0],
+                BigInteger.ONE);
+
         TransactionReceipt receipt = new TransactionReceipt(10_000_000_000L,
                 2_000_000L, 1_000_000L, 1_000_000,
-                0, new byte[0], new byte[0], ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"), new byte[0],
+                0, new byte[0], new byte[0], rawTransaction.getTransactionHash(), new byte[0],
                 BigInteger.valueOf(currentBlockNumber),
+                sender,
                 new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                new ArrayList<>(), 1);
+                new ArrayList<>(Arrays.asList(new TransactionLog(
+                        new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                        ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"),
+                        Arrays.asList("Registered".getBytes()),
+                        BigInteger.ONE,
+                        0,
+                        0))), 1);
 
         when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
@@ -308,22 +325,14 @@ public class RESTInteractionTest {
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(Arrays.asList(deployLog));
 
-        PrivateKey privateKey = PrivateKey.fromBytes(
-                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
-
-        SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
-                privateKey,
-                BigInteger.ONE,
-                receipt.getTransactionSender(),
-                new byte[0],
-                BigInteger.ONE);
-
         Client c1 = getNewClient();
         WebTarget target = c1.target(URI);
         startThreads();
         Response response = makePOSTCall(target, Hex.encodeHexString(rawTransaction.getSignedTransactionBytes()));
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        //todo add better validation
+        Assert.assertEquals(ByteUtil.toHexString(rawTransaction.getTransactionHash()), response.readEntity(String.class));
+        Thread.sleep(1000);
+        Assert.assertEquals(1, userState.getTransactions("a0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf").size());
         c1.close();
         shutdownThreads();
     }
@@ -503,6 +512,24 @@ public class RESTInteractionTest {
         shutdownThreads();
     }
 
+    @Test
+    public void testGetNonce() throws DecoderException, InterruptedException {
+        Client c1 = getNewClient();
+        WebTarget target1 = c1.target(URI);
+        org.aion.harness.kernel.Address player = new org.aion.harness.kernel.Address(TestingHelper.getRandomAddressBytes());
+
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(Arrays.asList(deployLog));
+        when(nodeConnection.getNonce(player)).thenReturn(RpcResult.successful(new BigInteger("10", 16), System.currentTimeMillis(), TimeUnit.MILLISECONDS));
+
+        startThreads();
+
+        String nonce = getNonce(target1, ByteUtil.toHexString(player.getAddressBytes()));
+        Assert.assertEquals("16", nonce);
+
+        c1.close();
+        shutdownThreads();
+    }
+
     private static String getStatements(WebTarget target) {
         return target.path("state/allStatements").request().get(String.class);
     }
@@ -531,12 +558,16 @@ public class RESTInteractionTest {
         return target.path("state/gameStatus").request().get(String.class);
     }
 
+    private static String getNonce(WebTarget target, String address) {
+        return target.queryParam("address", address).path("state/getNonce").request().get(String.class);
+    }
+
     private Client getNewClient() {
         return ClientBuilder.newClient();
     }
 
     private HttpServer startServer() {
-        return SimpleHttpServer.startServer(projectedState, queuePopulator);
+        return SimpleHttpServer.startServer(userState, queuePopulator);
     }
 
     Answer getNextBlock = invocation -> {
