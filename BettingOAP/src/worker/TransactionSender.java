@@ -1,13 +1,18 @@
 package worker;
 
 import internal.CriticalException;
+import main.SignedTransactionBuilder;
+import org.aion.harness.kernel.Address;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.result.RpcResult;
+import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import state.UserState;
 import util.NodeConnection;
 import util.Pair;
+import types.TransactionDetails;
 
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -22,6 +27,7 @@ public class TransactionSender implements Runnable {
     private LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes;
     private BlockNumberCollector blockNumberCollector;
     private NodeConnection nodeConnection;
+    private UserState userState;
     private final long pollIntervalMilliSeconds;
     private final long queueQueryIntervalMillis;
     private volatile boolean shutdown = false;
@@ -31,12 +37,14 @@ public class TransactionSender implements Runnable {
                              LinkedBlockingDeque<byte[]> rawTransactions,
                              LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes,
                              NodeConnection nodeConnection,
+                             UserState userState,
                              long pollIntervalMilliSeconds,
                              long queueQueryIntervalMillis) {
         this.blockNumberCollector = blockNumberCollector;
         this.rawTransactions = rawTransactions;
         this.transactionHashes = transactionHashes;
         this.nodeConnection = nodeConnection;
+        this.userState = userState;
         this.pollIntervalMilliSeconds = pollIntervalMilliSeconds;
         this.queueQueryIntervalMillis = queueQueryIntervalMillis;
     }
@@ -63,6 +71,9 @@ public class TransactionSender implements Runnable {
                         } else {
                             //retry later?
                             logger.debug("Blk: " + blockNumber + ", Could not send " + Hex.encodeHexString(toSend));
+                            // todo decode sender address from the bytes
+                            userState.putTransaction(new Address(ByteUtil.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
+                                    TransactionDetails.fromFailedTransaction(SignedTransactionBuilder.getTransactionHashOfSignedTransaction(toSend)));
                         }
 
                     } else {

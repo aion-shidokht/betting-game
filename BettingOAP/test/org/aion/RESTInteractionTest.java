@@ -18,6 +18,7 @@ import org.mockito.stubbing.Answer;
 import server.SimpleHttpServer;
 import state.ProjectedState;
 import state.StatePopulator;
+import state.UserState;
 import util.*;
 import worker.BlockNumberCollector;
 import worker.EventListener;
@@ -88,6 +89,7 @@ public class RESTInteractionTest {
         long pollingIntervalMillis = 50;
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
+        UserState userState = new UserState();
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
@@ -106,13 +108,14 @@ public class RESTInteractionTest {
                 rawTransactions,
                 transactionHashes,
                 nodeConnection,
+                userState,
                 pollingIntervalMillis,
                 1);
 
         receiptCollector = new ReceiptCollector(blockNumberCollector,
                 transactionHashes,
-                transactionReceipts,
                 nodeConnection,
+                userState,
                 2,
                 pollingIntervalMillis,
                 3);

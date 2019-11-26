@@ -2,13 +2,17 @@ package worker;
 
 import internal.CriticalException;
 import internal.RetryExecutor;
+import org.aion.harness.kernel.Address;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
+import org.aion.util.bytes.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import state.UserState;
 import util.NodeConnection;
 import util.Pair;
+import types.TransactionDetails;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -22,9 +26,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class ReceiptCollector implements Runnable {
 
     private LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes;
-    private LinkedBlockingDeque<TransactionReceipt> transactionReceipts;
     private BlockNumberCollector blockNumberCollector;
     private NodeConnection nodeConnection;
+    private UserState userState;
     private RetryExecutor<RpcResult<TransactionReceipt>> getReceiptRetryExecutor;
     private final long pollIntervalMillis;
     private long minimumDepth;
@@ -33,15 +37,15 @@ public class ReceiptCollector implements Runnable {
 
     public ReceiptCollector(BlockNumberCollector blockNumberCollector,
                             LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes,
-                            LinkedBlockingDeque<TransactionReceipt> transactionReceipts,
                             NodeConnection nodeConnection,
+                            UserState userState,
                             long minimumDepth,
                             long pollIntervalMillis,
                             int maxGetReceiptAttempt) {
         this.blockNumberCollector = blockNumberCollector;
         this.transactionHashes = transactionHashes;
-        this.transactionReceipts = transactionReceipts;
         this.nodeConnection = nodeConnection;
+        this.userState = userState;
         this.minimumDepth = minimumDepth;
         // used for queue, receipt and block number polling intervals. Can be separated in the future.
         this.pollIntervalMillis = pollIntervalMillis;
@@ -73,15 +77,21 @@ public class ReceiptCollector implements Runnable {
 
                     transactionHashes.poll();
 
-                    RpcResult<TransactionReceipt> transactionReceipt = getReceipt(transactionInfo.key);
+                    RpcResult<TransactionReceipt> getReceiptRpcResult = getReceipt(transactionInfo.key);
+                    TransactionReceipt receipt = getReceiptRpcResult.getResult();
 
-                    if (transactionReceipt.isSuccess()) {
-                        transactionReceipts.offer(transactionReceipt.getResult());
+                    if (getReceiptRpcResult.isSuccess()) {
+                        userState.putTransaction(receipt.getTransactionSender(), TransactionDetails.fromReceipt(receipt));
                         logger.debug("Blk: " + blockNumber + ", Successfully received the receipt for " + transactionInfo.key);
-                        // todo update the app state
                     } else {
-                        logger.debug("Blk: " + blockNumber + ", Failed to retrieve receipt for " + transactionInfo.key);
-                        // todo update the app state
+                        if(receipt != null) {
+                            userState.putTransaction(receipt.getTransactionSender(), TransactionDetails.fromReceipt(receipt));
+                            logger.debug("Blk: " + blockNumber + ", Failed to retrieve receipt for " + transactionInfo.key);
+                        } else {
+                            // todo decode sender address from the bytes
+                            userState.putTransaction(new Address(ByteUtil.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
+                                    TransactionDetails.fromFailedTransaction(transactionInfo.key.getHash()));
+                        }
                     }
 
                 } else {

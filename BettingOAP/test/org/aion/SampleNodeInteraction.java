@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import state.ProjectedState;
 import state.StatePopulator;
+import state.UserState;
 import util.Log;
 import util.NodeConnection;
 import util.Pair;
@@ -87,18 +88,20 @@ public class SampleNodeInteraction {
         LinkedBlockingDeque<TransactionReceipt> transactionReceipts = new LinkedBlockingDeque<>(100);
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
+        UserState userState = new UserState();
 
         transactionSender = new TransactionSender(blockNumberCollector,
                 rawTransactions,
                 transactionHashes,
                 nodeConnection,
+                userState,
                 pollingIntervalMilliSeconds,
                 5);
 
         receiptCollector = new ReceiptCollector(blockNumberCollector,
                 transactionHashes,
-                transactionReceipts,
                 nodeConnection,
+                userState,
                 2,
                 5000,
                 3);
