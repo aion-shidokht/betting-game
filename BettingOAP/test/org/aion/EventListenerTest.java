@@ -34,13 +34,10 @@ public class EventListenerTest {
 
     @Before
     public void setup() {
-        deployLog = new Log(Address,
-                "BettingContractDeployed".getBytes(),
-                new ArrayList<>(),
+        deployLog = TestingHelper.getOneTopicEvent(Address,
                 BigInteger.TEN,
+                "BettingContractDeployed",
                 0,
-                0,
-                Hash,
                 Hash);
 
         projectedState = new ProjectedState();
@@ -284,7 +281,7 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getNoTopicEvent(deployLog.address, BigInteger.valueOf(20), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(20), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
@@ -348,7 +345,7 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getNoTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
@@ -407,7 +404,7 @@ public class EventListenerTest {
         Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getNoTopicEvent(deployLog.address, BigInteger.valueOf(15), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(15), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
@@ -454,7 +451,7 @@ public class EventListenerTest {
         Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getNoTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
@@ -552,7 +549,7 @@ public class EventListenerTest {
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getNoTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
         Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(5), player1, 1, newDeployBlockHash);
 
         // 10 -> 100

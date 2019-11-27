@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-import static org.aion.TestingHelper.getNoTopicEvent;
+import static org.aion.TestingHelper.getOneTopicEvent;
 import static org.aion.TestingHelper.getRevealedAnswerLog;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -76,13 +76,10 @@ public class RESTInteractionTest {
         URI = SimpleHttpServer.getBaseUri();
         when(nodeConnection.blockNumber()).thenAnswer(getNextBlock);
 
-        deployLog = new Log(Address,
-                "BettingContractDeployed".getBytes(),
-                new ArrayList<>(),
+        deployLog = TestingHelper.getOneTopicEvent(Address,
                 BigInteger.TEN,
+                "BettingContractDeployed",
                 0,
-                0,
-                hash,
                 hash);
 
         ProjectedState projectedState = new ProjectedState();
@@ -494,8 +491,8 @@ public class RESTInteractionTest {
 
         BigInteger blockNumber = deployLog.blockNumber.add(BigInteger.ONE);
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player, 0, null);
-        Log gameStoppedLog = getNoTopicEvent(player, blockNumber, "GameStopped", 0, registerLog.blockHash);
-        Log distributedPrizeLog = getNoTopicEvent(player, blockNumber, "DistributedPrize", 0,  registerLog.blockHash);
+        Log gameStoppedLog = getOneTopicEvent(player, blockNumber, "GameStopped", 0, registerLog.blockHash);
+        Log distributedPrizeLog = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0,  registerLog.blockHash);
 
         List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog, registerLog, gameStoppedLog, distributedPrizeLog));
         List<Log> logs2 = new ArrayList<>(Arrays.asList(registerLog, gameStoppedLog, distributedPrizeLog));

@@ -83,14 +83,14 @@ public class TestingHelper {
                 getRandomAddressBytes());
     }
 
-    static Log getNoTopicEvent(Address contractAddress,
-                               BigInteger blockNumber,
-                               String data,
-                               int transactionIndex,
-                               byte[] blockHash) {
+    static Log getOneTopicEvent(Address contractAddress,
+                                BigInteger blockNumber,
+                                String topic,
+                                int transactionIndex,
+                                byte[] blockHash) {
         return new Log(contractAddress,
-                data.getBytes(),
-                new ArrayList<>(),
+                new byte[0],
+                Arrays.asList(topic.getBytes()),
                 blockNumber,
                 transactionIndex,
                 0,

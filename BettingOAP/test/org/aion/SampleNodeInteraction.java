@@ -80,6 +80,7 @@ public class SampleNodeInteraction {
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
         NodeConnection nodeConnection = new NodeConnection(rpc, new types.Address(contract.getAddressBytes()));
+
         long pollingIntervalMilliSeconds = 5000;
         blockNumberCollector = new BlockNumberCollector(nodeConnection, pollingIntervalMilliSeconds, 3);
 

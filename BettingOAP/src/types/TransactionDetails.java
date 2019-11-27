@@ -25,12 +25,7 @@ public class TransactionDetails {
             // only direct Betting contract calls should be going through the application
             Assertion.assertTrue(receipt.getLogs().size() == 1);
             TransactionLog log = receipt.getLogs().get(0);
-            String eventName;
-            if (log.copyOfTopics().size() > 0) {
-                eventName = new String(log.copyOfTopics().get(0)).trim();
-            } else {
-                eventName = new String(log.copyOfData()).trim();
-            }
+            String eventName = new String(log.copyOfTopics().get(0)).trim();
             transactionDetails.transactionType = TRANSACTION_TYPE.fromString(eventName);
             // todo null case, throw an exception?
         }

@@ -33,7 +33,7 @@ public class BettingEvents {
     }
 
     public static void distributedPrize() {
-        Blockchain.log("DistributedPrize".getBytes());
+        Blockchain.log("DistributedPrize".getBytes(), new byte[0]);
     }
 
     public static void updatedBalance(BigInteger balance) {
@@ -42,11 +42,11 @@ public class BettingEvents {
     }
 
     public static void gameStopped() {
-        Blockchain.log("GameStopped".getBytes());
+        Blockchain.log("GameStopped".getBytes(), new byte[0]);
     }
 
     public static void deployed() {
-        Blockchain.log("BettingContractDeployed".getBytes());
+        Blockchain.log("BettingContractDeployed".getBytes(), new byte[0]);
     }
 
 }

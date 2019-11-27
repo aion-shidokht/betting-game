@@ -37,7 +37,7 @@ public class StatePopulatorTest {
 
     @Before
     public void setup() {
-        deployLog = TestingHelper.getNoTopicEvent(sampleAddress,
+        deployLog = TestingHelper.getOneTopicEvent(sampleAddress,
                 BigInteger.TEN,
                 "BettingContractDeployed",
                 0,
@@ -246,7 +246,7 @@ public class StatePopulatorTest {
     public void testGameStoppedEvent() throws DecoderException, InterruptedException {
         Address player = new Address(getRandomAddressBytes());
 
-        Log log = getNoTopicEvent(player, blockNumber, "GameStopped", 0, null);
+        Log log = getOneTopicEvent(player, blockNumber, "GameStopped", 0, null);
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
         when(nodeConnection.getLogs(log.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
@@ -266,7 +266,7 @@ public class StatePopulatorTest {
     public void testDistributedPrizeEvent() throws DecoderException, InterruptedException {
         Address player = new Address(getRandomAddressBytes());
 
-        Log log = getNoTopicEvent(player, blockNumber, "DistributedPrize", 0, null);
+        Log log = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0, null);
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
         when(nodeConnection.getLogs(log.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();

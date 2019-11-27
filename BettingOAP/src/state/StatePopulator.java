@@ -1,5 +1,6 @@
 package state;
 
+import internal.Assertion;
 import types.Answer;
 import types.BlockTuple;
 import types.Statement;
@@ -30,44 +31,37 @@ public class StatePopulator {
                 int addedLogId;
                 byte[] data = log.copyOfData();
                 List<byte[]> topics = log.copyOfTopics();
-                if (topics.size() > 0) {
-                    String eventTopic = new String(topics.get(0)).trim();
-                    switch (eventTopic) {
-                        case "Registered":
-                            addedLogId = projectedState.addPlayer(Player.from(data, log.copyOfTransactionHash()));
-                            break;
-                        case "Voted":
-                            addedLogId = projectedState.addVote(Vote.from(topics, data, log.copyOfTransactionHash()));
-                            break;
-                        case "SubmittedStatement":
-                            addedLogId = projectedState.addStatement(Statement.from(topics, data, log.copyOfTransactionHash()));
-                            break;
-                        case "RevealedAnswer":
-                            addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash()));
-                            break;
-                        default:
-                            throw new CriticalException("First event topic not recognized. " + eventTopic);
-                    }
+                Assertion.assertTrue(topics.size() > 0);
+                String eventTopic = new String(topics.get(0)).trim();
+                switch (eventTopic) {
+                    case "Registered":
+                        addedLogId = projectedState.addPlayer(Player.from(data, log.copyOfTransactionHash()));
+                        break;
+                    case "Voted":
+                        addedLogId = projectedState.addVote(Vote.from(topics, data, log.copyOfTransactionHash()));
+                        break;
+                    case "SubmittedStatement":
+                        addedLogId = projectedState.addStatement(Statement.from(topics, data, log.copyOfTransactionHash()));
+                        break;
+                    case "RevealedAnswer":
+                        addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash()));
+                        break;
 
-                } else {
-                    String eventData = new String(data).trim();
-                    switch (eventData) {
-                        // todo update after the contract finalization
-                        case "DistributedPrize":
-                            addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash());
-                            break;
-                        case "UpdatedBalance":
-                            addedLogId = projectedState.addTransferValue(new BigInteger(eventData), log.copyOfTransactionHash());
-                            break;
-                        case "GameStopped":
-                            addedLogId = projectedState.stopGame(log.copyOfTransactionHash());
-                            break;
-                        case "BettingContractDeployed":
-                            addedLogId = projectedState.deployedContract();
-                            break;
-                        default:
-                            throw new CriticalException("Event data not recognized. " + eventData);
-                    }
+                    // todo update after the contract finalization
+                    case "DistributedPrize":
+                        addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash());
+                        break;
+                    case "UpdatedBalance":
+                        addedLogId = projectedState.addTransferValue(new BigInteger(new String(data).trim()), log.copyOfTransactionHash());
+                        break;
+                    case "GameStopped":
+                        addedLogId = projectedState.stopGame(log.copyOfTransactionHash());
+                        break;
+                    case "BettingContractDeployed":
+                        addedLogId = projectedState.deployedContract();
+                        break;
+                    default:
+                        throw new CriticalException("First event topic not recognized. " + eventTopic);
                 }
                 ids.add(addedLogId);
             }
