@@ -2,6 +2,7 @@ package state;
 
 import types.*;
 import internal.Assertion;
+import types.BlockTuple;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -46,7 +47,7 @@ public class ProjectedState {
 
     public int addPlayer(Player player) {
         currentEventId++;
-        Assertion.assertTrue(!containsPlayer(player.getPlayerAddress()));
+        Assertion.assertTrue(!findPlayer(player.getPlayerAddress()).isPresent());
         players.put(currentEventId, player);
         return currentEventId;
     }
@@ -54,7 +55,7 @@ public class ProjectedState {
     public int addStatement(Statement statement) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(containsPlayer(statement.getPlayerAddress()));
+        Assertion.assertTrue(findPlayer(statement.getPlayerAddress()).isPresent());
         Assertion.assertTrue(!findStatementId(statement.getStatementId()).isPresent());
         statements.put(currentEventId, statement);
         return currentEventId;
@@ -63,7 +64,7 @@ public class ProjectedState {
     public int addVote(Vote vote) {
         currentEventId++;
         // imposing contract restrictions again as a sanity check for the projected state
-        Assertion.assertTrue(containsPlayer(vote.getPlayerAddress()));
+        Assertion.assertTrue(findPlayer(vote.getPlayerAddress()).isPresent());
         Optional<Statement> s = findStatementId(vote.getStatementId());
         Assertion.assertTrue(s.isPresent());
         s.get().addVoteId(currentEventId);
@@ -78,6 +79,14 @@ public class ProjectedState {
         Assertion.assertTrue(s.isPresent());
         s.get().setAnswerEventId(currentEventId);
         answers.put(currentEventId, answer);
+        Collection<Vote> values = votes.values();
+        for (Vote vote : values) {
+            if (vote.getStatementId() == answer.getStatementId() && vote.getGuessedAnswer().equals(answer.getAnswer())) {
+                Player p = findPlayer(vote.getPlayerAddress()).orElseThrow();
+                p.addAnswerEventId(currentEventId);
+            }
+        }
+
         return currentEventId;
     }
 
@@ -198,6 +207,7 @@ public class ProjectedState {
 
     private void revertLogs(Set<Integer> logIds) {
         players.keySet().removeAll(logIds);
+        players.values().forEach(p -> p.removeAnswerEventIds(logIds));
         statements.keySet().removeAll(logIds);
         for (int id : logIds) {
             Vote v = votes.remove(id);
@@ -223,7 +233,7 @@ public class ProjectedState {
         }
     }
 
-    private boolean containsPlayer(Address player) {
-        return players.values().stream().anyMatch(p -> p.getPlayerAddress().equals(player));
+    private Optional<Player> findPlayer(Address player) {
+        return players.values().stream().filter(p -> p.getPlayerAddress().equals(player)).findAny();
     }
 }

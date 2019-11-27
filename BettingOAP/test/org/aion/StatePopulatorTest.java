@@ -9,6 +9,7 @@ import org.junit.Test;
 import state.ProjectedState;
 import state.StatePopulator;
 import types.BlockTuple;
+import types.Player;
 import util.Log;
 import util.NodeConnection;
 import worker.EventListener;
@@ -16,6 +17,8 @@ import worker.EventListener;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.aion.TestingHelper.*;
 import static org.mockito.Mockito.mock;
@@ -192,6 +195,51 @@ public class StatePopulatorTest {
         Assert.assertEquals(1, projectedState.getStatements().size());
         Assert.assertEquals(expectedId, (int) projectedState.getStatements().get(expectedId -1).getAnswerEventId());
         Assert.assertEquals(0, projectedState.getStatements().get(expectedId -1).getVoteEventIds().size());
+    }
+
+    @Test
+    public void testScoreCalculation() throws DecoderException, InterruptedException {
+        String answer = "A";
+        int statementId = 1;
+
+        Address[] player = new Address[5];
+        Log[] registerLogs = new Log[player.length];
+        Log[] voteLogs = new Log[player.length];
+        byte[] sampleHash = getRandomAddressBytes();
+
+        for (int i = 0; i < player.length; i++) {
+            player[i] = new Address(getRandomAddressBytes());
+            registerLogs[i] = getRegisteredLog(deployLog.address, blockNumber, player[i], i + 1, deployLog.blockHash);
+            voteLogs[i] = getVotedLog(deployLog.address, blockNumber.add(BigInteger.ONE), player[i], statementId, answer.getBytes(), i + 1, sampleHash);
+        }
+
+        Log submittedLog = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), 0, sampleHash);
+        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, blockNumber.add(BigInteger.ONE), statementId, answer.getBytes(), 10, sampleHash);
+
+        List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog));
+        logs1.addAll(Arrays.asList(registerLogs));
+        logs1.addAll(Arrays.asList(submittedLog));
+        logs1.addAll(Arrays.asList(voteLogs));
+        logs1.addAll(Arrays.asList(revealedAnswerLog));
+
+        List<Log> logs2 = new ArrayList<>();
+        logs2.addAll(Arrays.asList(submittedLog));
+        logs2.addAll(Arrays.asList(voteLogs));
+        logs2.addAll(Arrays.asList(revealedAnswerLog));
+
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", null)).thenReturn(logs2);
+
+        startThreads();
+
+        Thread.sleep(pollingIntervalMillis * 10);
+
+        Map<Integer, Player> players = projectedState.getPlayers();
+        for (int i = 0; i < player.length; i++) {
+            Assert.assertEquals(1, players.get(i + 1).getScore());
+        }
+
+        shutdownThreads();
     }
 
     @Test

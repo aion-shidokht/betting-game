@@ -422,7 +422,9 @@ public class RESTInteractionTest {
         startThreads();
 
         String response = getPlayers(target1);
-        Assert.assertEquals(389, response.length());
+
+        Assert.assertEquals(409, response.length());
+
         JSONObject obj = new JSONObject(response);
 
         Assert.assertNotNull(obj);

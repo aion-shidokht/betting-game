@@ -16,6 +16,7 @@ import worker.EventListener;
 import java.math.BigInteger;
 import java.util.*;
 
+import static org.aion.TestingHelper.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -582,6 +583,66 @@ public class EventListenerTest {
         Assert.assertEquals(0, projectedState.getVotes().size());
     }
 
+    @Test
+    public void testReorgScoreCalcualtion() throws DecoderException, InterruptedException {
+        String answer = "A";
+        int statementId = 1;
+
+        Address[] player = new Address[5];
+        Log[] registerLogs = new Log[player.length];
+        Log[] voteLogs = new Log[player.length * 2];
+        byte[] sampleHash = getRandomAddressBytes();
+
+        for (int i = 0; i < player.length; i++) {
+            player[i] = new Address(getRandomAddressBytes());
+            registerLogs[i] = getRegisteredLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], i, sampleHash);
+            voteLogs[i] = getVotedLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], statementId, answer.getBytes(), i + player.length * 2, sampleHash);
+            voteLogs[i + player.length] = getVotedLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], statementId + 1, answer.getBytes(), i + player.length * 3, sampleHash);
+        }
+
+        Log submittedLog = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), player.length + 1, sampleHash);
+        Log submittedLog2 = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[0], statementId + 1, "S0".getBytes(), getRandomAddressBytes(), player.length + 2, sampleHash);
+
+        byte[] sampleHash2 = getRandomAddressBytes();
+        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId, answer.getBytes(), player.length * 5, sampleHash2);
+        Log revealedAnswerLog2 = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId + 1, answer.getBytes(), player.length * 5 + 10, sampleHash2);
+        Log revealedAnswerLogReplacement = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId + 1, answer.getBytes(), player.length * 5 + 10, getRandomAddressBytes());
+
+        List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog));
+        logs1.addAll(Arrays.asList(registerLogs));
+        logs1.addAll(Arrays.asList(submittedLog, submittedLog2));
+        logs1.addAll(Arrays.asList(voteLogs));
+        logs1.addAll(Arrays.asList(revealedAnswerLog, revealedAnswerLog2));
+
+        List<Log> logs2 = new ArrayList<>();
+        logs2.addAll(Arrays.asList(registerLogs));
+        logs2.addAll(Arrays.asList(submittedLog, submittedLog2));
+        logs2.addAll(Arrays.asList(voteLogs));
+        logs2.addAll(Arrays.asList(revealedAnswerLogReplacement));
+
+        List<Log> logs3 = new ArrayList<>();
+        logs3.addAll(Arrays.asList(registerLogs));
+        logs3.addAll(Arrays.asList(submittedLog, submittedLog2));
+        logs3.addAll(Arrays.asList(voteLogs));
+        logs3.addAll(Arrays.asList(revealedAnswerLogReplacement));
+
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", null))
+                .thenReturn(Arrays.asList(revealedAnswerLog, revealedAnswerLog2))
+                .thenReturn(Arrays.asList(revealedAnswerLogReplacement));
+
+        startThreads();
+
+        Thread.sleep(pollingIntervalMillis * 10);
+
+        Map<Integer, Player> players = projectedState.getPlayers();
+        for (int i = 0; i < player.length; i++) {
+            Assert.assertEquals(1, players.get(i + 1).getScore());
+        }
+
+        shutdownThreads();
+    }
 
     private boolean containsPlayer(Map<Integer, Player> playerMap, Address player) {
         for (Player p : playerMap.values()) {
