@@ -1,6 +1,5 @@
 package org.aion;
 
-import org.apache.commons.codec.binary.Hex;
 import types.Player;
 import types.Address;
 import org.apache.commons.codec.DecoderException;
@@ -17,8 +16,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 import static org.aion.TestingHelper.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +30,7 @@ public class EventListenerTest {
     private Thread eventListenerThread;
     private ProjectedState projectedState;
 
+    Set<byte[]> topics = TestingHelper.getContractTopics();
     @Before
     public void setup() {
         deployLog = TestingHelper.getOneTopicEvent(Address,
@@ -48,7 +47,8 @@ public class EventListenerTest {
                 statePopulator,
                 deployLog,
                 pollingIntervalMillis,
-                BigInteger.valueOf(5));
+                BigInteger.valueOf(5),
+                topics);
 
         eventListenerThread = new Thread(eventListener);
     }
@@ -72,13 +72,13 @@ public class EventListenerTest {
         Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
 
-        when(nodeConnection.getLogs(blockNumber, "latest", null))
+        when(nodeConnection.getLogs(blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", null))
+        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -106,13 +106,13 @@ public class EventListenerTest {
         Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
 
-        when(nodeConnection.getLogs(blockNumber, "latest", null))
+        when(nodeConnection.getLogs(blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, registerLog, submitLog)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", null))
+        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -141,18 +141,18 @@ public class EventListenerTest {
         Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player2, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         // chain reorgs
-        when(nodeConnection.getLogs(BigInteger.valueOf(110), "latest", null))
+        when(nodeConnection.getLogs(BigInteger.valueOf(110), "latest", topics))
                 .thenReturn(new ArrayList<>());
 
         startThreads();
@@ -180,18 +180,18 @@ public class EventListenerTest {
         Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, newVoteLog, voteLogReplacement)));
 
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(voteLogReplacement)));
 
         startThreads();
@@ -229,22 +229,22 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
         startThreads();
@@ -284,28 +284,28 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(20), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(Set.class)))//eq(new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())))))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
 
         startThreads();
@@ -348,28 +348,28 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog, answerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
         when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
 
         startThreads();
@@ -407,25 +407,25 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(15), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>());
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>());
 
         when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         startThreads();
@@ -454,25 +454,25 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>());
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>());
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>());
 
         when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         startThreads();
@@ -506,22 +506,22 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2, voteLogReplacement, registerLog2Replacement)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
         startThreads();
@@ -553,20 +553,20 @@ public class EventListenerTest {
         Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(5), player1, 1, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>());
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
                 .thenReturn(new ArrayList<>());
         when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
         // chain reorgs
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", null))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
                 .thenReturn(Arrays.asList(newDeployLog, registerLogReplacement));
 
         startThreads();
@@ -623,9 +623,9 @@ public class EventListenerTest {
         logs3.addAll(Arrays.asList(voteLogs));
         logs3.addAll(Arrays.asList(revealedAnswerLogReplacement));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", null)).thenReturn(logs2);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", null))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", topics)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", topics))
                 .thenReturn(Arrays.asList(revealedAnswerLog, revealedAnswerLog2))
                 .thenReturn(Arrays.asList(revealedAnswerLogReplacement));
 

@@ -5,8 +5,10 @@ import util.Log;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TestingHelper {
     private static SecureRandom secureRandom = new SecureRandom();
@@ -98,6 +100,17 @@ public class TestingHelper {
                 getRandomAddressBytes());
     }
 
+    static Set<byte[]> getContractTopics(){
+        Set<String> topics = new HashSet<>(Arrays.asList("BettingContractDeployed",
+                "Registered",
+                "Voted",
+                "SubmittedStatement",
+                "RevealedAnswer",
+                "DistributedPrize",
+                "UpdatedBalance",
+                "GameStopped"));
+        return topics.stream().map(String::getBytes).collect(Collectors.toSet());
+    }
     static byte[] getRandomAddressBytes() {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);

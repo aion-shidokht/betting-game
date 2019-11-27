@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 public class NodeConnection {
 
-    private RPC rpc;
-    private Address contractAddress;
+    private final RPC rpc;
+    private final Address contractAddress;
 
     public NodeConnection(RPC rpc, Address contractAddress) {
         this.rpc = rpc;
@@ -93,18 +93,17 @@ public class NodeConnection {
         String payloadStart = "{\"jsonrpc\":\"2.0\",\"method\":\"";
         String methodName = "eth_getLogs";
         String paramsStart = "\",\"params\":[{";
-        if (null != topics) {
-            paramsStart += "\"topics\":[";
-            int i = 1;
-            for (byte[] topic : topics) {
-                paramsStart += "\"0x" + Hex.encodeHexString(truncatePadTopic(topic));
-                if (i < topics.size()) {
-                    i++;
-                    paramsStart += "\", ";
-                }
+        paramsStart += "\"topics\":[[";
+        int i = 1;
+        for (byte[] topic : topics) {
+            paramsStart += "\"0x" + Hex.encodeHexString(truncatePadTopic(topic));
+            if (i < topics.size()) {
+                i++;
+                paramsStart += "\", ";
             }
-            paramsStart += "], ";
         }
+        paramsStart += "\"]], ";
+
         String payloadEnd = "}],\"id\":1}";
 
         return payloadStart +

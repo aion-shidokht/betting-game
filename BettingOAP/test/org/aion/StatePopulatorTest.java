@@ -15,10 +15,7 @@ import util.NodeConnection;
 import worker.EventListener;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.aion.TestingHelper.*;
 import static org.mockito.Mockito.mock;
@@ -34,6 +31,7 @@ public class StatePopulatorTest {
     private Thread eventListenerThread;
     private BigInteger blockNumber = BigInteger.valueOf(100);
     private ProjectedState projectedState;
+    Set<byte[]> topics = TestingHelper.getContractTopics();
 
     @Before
     public void setup() {
@@ -50,7 +48,8 @@ public class StatePopulatorTest {
                 statePopulator,
                 deployLog,
                 pollingIntervalMillis,
-                BigInteger.ONE);
+                BigInteger.ONE,
+                topics);
 
         eventListenerThread = new Thread(eventListener);
     }
@@ -66,7 +65,7 @@ public class StatePopulatorTest {
 
     @Test
     public void testDeployEvent() throws DecoderException, InterruptedException {
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -81,8 +80,8 @@ public class StatePopulatorTest {
     public void testRegisterEvent() throws DecoderException, InterruptedException {
         Address player = new Address(getRandomAddressBytes());
         Log log = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -107,8 +106,8 @@ public class StatePopulatorTest {
         Log log1 = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
 
         Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, statement.getBytes(), answerHash, 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2)));
-        when(nodeConnection.getLogs(log2.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log2)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2)));
+        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log2)));
 
         startThreads();
 
@@ -139,9 +138,9 @@ public class StatePopulatorTest {
 
         Log log3 = getVotedLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, answer.getBytes(), 0, log1.blockHash);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
-        when(nodeConnection.getLogs(log1.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
-        when(nodeConnection.getLogs(log2.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log2, log3)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
+        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
+        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log2, log3)));
 
         startThreads();
 
@@ -175,8 +174,8 @@ public class StatePopulatorTest {
 
         Log log3 = getRevealedAnswerLog(deployLog.address, blockNumber, statementId, answer.getBytes(), 0, log1.blockHash);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
-        when(nodeConnection.getLogs(log1.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
+        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
 
         startThreads();
 
@@ -227,8 +226,8 @@ public class StatePopulatorTest {
         logs2.addAll(Arrays.asList(voteLogs));
         logs2.addAll(Arrays.asList(revealedAnswerLog));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -247,8 +246,8 @@ public class StatePopulatorTest {
         Address player = new Address(getRandomAddressBytes());
 
         Log log = getOneTopicEvent(player, blockNumber, "GameStopped", 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -267,8 +266,8 @@ public class StatePopulatorTest {
         Address player = new Address(getRandomAddressBytes());
 
         Log log = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", null)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);

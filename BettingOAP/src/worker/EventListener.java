@@ -24,12 +24,14 @@ public class EventListener implements Runnable {
     private Log deployedLog;
     private volatile boolean shutdown = false;
     private final BigInteger deploymentLogRangeCheck;
+    private final Set<byte[]> topics;
 
     public EventListener(NodeConnection nodeConnection,
                          StatePopulator statePopulator,
                          Log deployedLog,
                          long pollIntervalMilliSeconds,
-                         BigInteger deploymentLogRangeCheck) {
+                         BigInteger deploymentLogRangeCheck,
+                         Set<byte[]> topics) {
         this.nodeConnection = nodeConnection;
         this.deployedLog = deployedLog;
         this.statePopulator = statePopulator;
@@ -38,6 +40,7 @@ public class EventListener implements Runnable {
         this.lastRetrievedBlockNumber = deployedLog.blockNumber;
         this.pollIntervalMilliSeconds = pollIntervalMilliSeconds;
         this.deploymentLogRangeCheck = deploymentLogRangeCheck;
+        this.topics = Collections.unmodifiableSet(topics);
     }
 
     @Override
@@ -45,7 +48,7 @@ public class EventListener implements Runnable {
         while (!shutdown) {
             try {
                 logger.debug("Polling from " + lastRetrievedBlockNumber);
-                List<Log> logs = nodeConnection.getLogs(lastRetrievedBlockNumber, "latest", null);
+                List<Log> logs = nodeConnection.getLogs(lastRetrievedBlockNumber, "latest", topics);
 
                 List<Log> sortedLogs = sortLogs(logs);
 
@@ -99,7 +102,7 @@ public class EventListener implements Runnable {
             // validate the previous block (from the one that was marked to be removed)
             blockTuple = itr.previous();
 
-            List<Log> logs = nodeConnection.getLogs(blockTuple.getBlockNumber(), "latest", null);
+            List<Log> logs = nodeConnection.getLogs(blockTuple.getBlockNumber(), "latest", topics);
             // if no logs are present, revert to previous
             if (logs.size() > 0) {
                 sortedLogs = sortLogs(logs);
@@ -126,7 +129,7 @@ public class EventListener implements Runnable {
             this.lastRetrievedBlockNumber = null;
 
             // get logs from deployment log block number
-            sortedLogs = sortLogs(nodeConnection.getLogs(deployedLog.blockNumber, "latest", null));
+            sortedLogs = sortLogs(nodeConnection.getLogs(deployedLog.blockNumber, "latest", topics));
         } else {
             // a common event was found
             statePopulator.revertBlocks(count);

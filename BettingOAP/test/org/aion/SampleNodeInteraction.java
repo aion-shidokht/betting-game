@@ -111,7 +111,8 @@ public class SampleNodeInteraction {
                 statePopulator,
                 deployLog,
                 pollingIntervalMilliSeconds,
-                BigInteger.TEN);
+                BigInteger.TEN,
+                TestingHelper.getContractTopics());
 
         transactionSenderThread = new Thread(transactionSender);
         receiptCollectorThread = new Thread(receiptCollector);

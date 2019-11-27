@@ -40,6 +40,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -71,6 +72,8 @@ public class RESTInteractionTest {
     private long currentBlockNumber = 10;
     private QueuePopulator queuePopulator;
 
+    Set<byte[]> topics = TestingHelper.getContractTopics();
+
     @Before
     public void setup() throws InterruptedException {
         URI = SimpleHttpServer.getBaseUri();
@@ -93,7 +96,8 @@ public class RESTInteractionTest {
                 statePopulator,
                 deployLog,
                 pollingIntervalMillis,
-                BigInteger.valueOf(5));
+                BigInteger.valueOf(5),
+                topics);
 
 
         blockNumberCollector = new BlockNumberCollector(nodeConnection, pollingIntervalMillis, 3);
@@ -170,8 +174,8 @@ public class RESTInteractionTest {
         logs2.add(registerLog);
         logs2.addAll(Arrays.asList(submitLogs));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -218,8 +222,8 @@ public class RESTInteractionTest {
         logs2.addAll(Arrays.asList(submitLogs));
         logs2.addAll(Arrays.asList(voteLogs));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -264,8 +268,8 @@ public class RESTInteractionTest {
         logs2.addAll(Arrays.asList(submitLogs));
         logs2.addAll(Arrays.asList(voteLogs));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -320,7 +324,7 @@ public class RESTInteractionTest {
                         System.currentTimeMillis(),
                         TimeUnit.MILLISECONDS));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(Arrays.asList(deployLog));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(Arrays.asList(deployLog));
 
         Client c1 = getNewClient();
         WebTarget target = c1.target(URI);
@@ -368,8 +372,8 @@ public class RESTInteractionTest {
         logs2.addAll(Arrays.asList(submitLogs));
         logs2.addAll(Arrays.asList(voteLogs));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -413,8 +417,8 @@ public class RESTInteractionTest {
 
         List<Log> logs2 = new ArrayList<>(Arrays.asList(registerLog, registerLog2));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -459,8 +463,8 @@ public class RESTInteractionTest {
         logs2.add(registerLog);
         logs2.addAll(Arrays.asList(logs));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -497,8 +501,8 @@ public class RESTInteractionTest {
         List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog, registerLog, gameStoppedLog, distributedPrizeLog));
         List<Log> logs2 = new ArrayList<>(Arrays.asList(registerLog, gameStoppedLog, distributedPrizeLog));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(logs1);
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", null)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics)).thenReturn(logs2);
 
         startThreads();
 
@@ -517,7 +521,7 @@ public class RESTInteractionTest {
         WebTarget target1 = c1.target(URI);
         org.aion.harness.kernel.Address player = new org.aion.harness.kernel.Address(TestingHelper.getRandomAddressBytes());
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", null)).thenReturn(Arrays.asList(deployLog));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(Arrays.asList(deployLog));
         when(nodeConnection.getNonce(player)).thenReturn(RpcResult.successful(new BigInteger("10", 16), System.currentTimeMillis(), TimeUnit.MILLISECONDS));
 
         startThreads();
