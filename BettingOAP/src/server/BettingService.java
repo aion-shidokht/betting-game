@@ -1,10 +1,9 @@
 package server;
 
 import main.SignedTransactionBuilder;
-import org.aion.util.bytes.ByteUtil;
-import org.aion.util.conversions.Hex;
 import state.UserState;
 import types.*;
+import util.Helper;
 import util.QueuePopulator;
 
 import javax.inject.Inject;
@@ -74,7 +73,7 @@ public class BettingService {
     @Path("/getNonce")
     @Produces(MediaType.APPLICATION_JSON)
     public BigInteger getGameStatus(@QueryParam("address") final String address) {
-        return userState.getNonce(new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes(address)));
+        return userState.getNonce(new org.aion.harness.kernel.Address(Helper.hexStringToBytes(address)));
     }
 
     @GET
@@ -87,10 +86,10 @@ public class BettingService {
     @POST
     @Path("/sendTransaction")
     public String send(String signedTransaction) {
-        byte[] txBytes = Hex.decode(signedTransaction);
+        byte[] txBytes = Helper.hexStringToBytes(signedTransaction);
         byte[] transactionHash = SignedTransactionBuilder.getTransactionHashOfSignedTransaction(txBytes);
         queuePopulator.putRawTransaction(txBytes);
-        return Hex.toHexString(transactionHash);
+        return Helper.bytesToHexString(transactionHash);
     }
 
 }

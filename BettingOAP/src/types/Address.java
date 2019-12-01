@@ -1,6 +1,6 @@
 package types;
 
-import org.apache.commons.codec.binary.Hex;
+import util.Helper;
 
 import java.util.Arrays;
 
@@ -26,7 +26,7 @@ public class Address {
     }
 
     public String getAddressString() {
-        return Hex.encodeHexString(this.addressBytes);
+        return "0x" + Helper.bytesToHexString(this.addressBytes);
     }
 
     public boolean equals(Object other) {

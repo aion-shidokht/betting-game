@@ -6,10 +6,10 @@ import org.aion.harness.kernel.Address;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import state.UserState;
+import util.Helper;
 import util.NodeConnection;
 import util.Pair;
 import types.TransactionDetails;
@@ -89,7 +89,7 @@ public class ReceiptCollector implements Runnable {
                             logger.debug("Blk: " + blockNumber + ", Failed to retrieve receipt for " + transactionInfo.key);
                         } else {
                             // todo decode sender address from the bytes
-                            userState.putTransaction(new Address(ByteUtil.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
+                            userState.putTransaction(new Address(Helper.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
                                     TransactionDetails.fromFailedTransaction(transactionInfo.key.getHash()));
                         }
                     }

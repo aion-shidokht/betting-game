@@ -1,9 +1,8 @@
 package types;
 
 import internal.Assertion;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 
-import java.math.BigInteger;
 import java.util.List;
 
 public class Vote {
@@ -23,9 +22,9 @@ public class Vote {
         Assertion.assertTopicSize(topics, 3);
         // topic[0] is Voted
         return new Vote(new Address(topics.get(1)),
-                new BigInteger(ByteUtil.toHexString(topics.get(2)), 16).intValue(),
+                Helper.byteArrayToInteger(topics.get(2)),
                 new String(data),
-                "0x" + ByteUtil.toHexString(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash));
     }
 
     public Address getPlayerAddress() {

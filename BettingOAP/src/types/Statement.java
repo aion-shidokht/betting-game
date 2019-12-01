@@ -1,9 +1,8 @@
 package types;
 
 import internal.Assertion;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,10 +30,10 @@ public class Statement {
     public static Statement from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
         Assertion.assertTopicSize(topics, 4);
         return new Statement(new Address(topics.get(1)),
-                new BigInteger(ByteUtil.toHexString(topics.get(2)), 16).intValue(),
-                "0x" + ByteUtil.toHexString(topics.get(3)),
+                Helper.byteArrayToInteger(topics.get(2)),
+                Helper.bytesToHexStringWith0x(topics.get(3)),
                 new String(data),
-                "0x" + ByteUtil.toHexString(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash));
     }
 
     public Address getPlayerAddress() {

@@ -5,8 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import types.Address;
 import org.aion.harness.main.tools.JsonStringParser;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -87,7 +85,7 @@ public class LogBuilder {
         return new Log(this.address, this.data, topics, this.blockNumber, this.transactionIndex, this.logIndex, this.blockHash, this.transactionHash);
     }
 
-    public Log buildFromJsonString(String jsonString) throws DecoderException {
+    public Log buildFromJsonString(String jsonString) {
         JsonStringParser jsonParser = new JsonStringParser(jsonString);
 
         String address = jsonParser.attributeToString("address");
@@ -100,18 +98,18 @@ public class LogBuilder {
         String transactionHash = jsonParser.attributeToString("transactionHash");
 
         return new LogBuilder()
-                .address(new Address(Hex.decodeHex(address)))
-                .data(Hex.decodeHex(data))
+                .address(new Address(Helper.hexStringToBytes(address)))
+                .data(parseData(data))
                 .topics(parseJsonTopics(topics))
                 .blockNumber(new BigInteger(blockNumber, 16))
                 .transactionIndex(Integer.parseInt(transactionIndex, 16))
                 .logIndex(Integer.parseInt(logIndex, 16))
-                .blockHash(Hex.decodeHex(blockHash))
-                .transactionHash(Hex.decodeHex(transactionHash))
+                .blockHash(Helper.hexStringToBytes(blockHash))
+                .transactionHash(Helper.hexStringToBytes(transactionHash))
                 .build();
     }
 
-    private static List<byte[]> parseJsonTopics(String jsonArrayOfTopics) throws DecoderException {
+    public static List<byte[]> parseJsonTopics(String jsonArrayOfTopics) {
         JsonArray jsonArray = (JsonArray) new JsonParser().parse(jsonArrayOfTopics);
 
         if (jsonArray.size() == 0) {
@@ -121,9 +119,17 @@ public class LogBuilder {
 
             Iterator<JsonElement> topicsIterator = jsonArray.iterator();
             while (topicsIterator.hasNext()) {
-                topics.add(Hex.decodeHex(stripQuotesAndHexSignifier(topicsIterator.next().toString())));
+                topics.add(Helper.hexStringToBytes(stripQuotesAndHexSignifier(topicsIterator.next().toString())));
             }
             return topics;
+        }
+    }
+
+    public static byte[] parseData(String data) {
+        if (data != null) {
+            return Helper.hexStringToBytes(data);
+        } else {
+            return new byte[0];
         }
     }
 

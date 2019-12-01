@@ -6,7 +6,6 @@ import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,11 +13,12 @@ import org.mockito.stubbing.Answer;
 import state.ProjectedState;
 import state.UserState;
 import types.TransactionDetails;
+import util.Helper;
 import util.NodeConnection;
 import util.Pair;
+import util.TransactionCreator;
 import worker.BlockNumberCollector;
 import worker.ReceiptCollector;
-import util.TransactionCreator;
 import worker.TransactionSender;
 
 import java.math.BigInteger;
@@ -105,7 +105,7 @@ public class TransactionSenderTest {
         String receiptHash = "15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1";
         when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
-                        new ReceiptHash(ByteUtil.hexStringToBytes(receiptHash)),
+                        new ReceiptHash(Helper.hexStringToBytes(receiptHash)),
                         System.currentTimeMillis(),
                         TimeUnit.MILLISECONDS));
 
@@ -116,11 +116,11 @@ public class TransactionSenderTest {
                         TimeUnit.MILLISECONDS));
 
         PrivateKey privateKey = PrivateKey.fromBytes(
-                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
+                Helper.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new byte[0],
                 BigInteger.ONE);
 
@@ -130,9 +130,9 @@ public class TransactionSenderTest {
 
         Thread.sleep(pollingIntervalMillis * 10);
 
-        Assert.assertEquals(1, userState.getTransactions(ByteUtil.toHexString(privateKey.getAddress().getAddressBytes())).size());
-        Assert.assertEquals(TransactionDetails.RESULT_TYPE.RECEIPT_SUCCESS, userState.getTransactions(ByteUtil.toHexString(privateKey.getAddress().getAddressBytes())).get(0).getResult());
-        Assert.assertEquals(TransactionDetails.TRANSACTION_TYPE.Registered, userState.getTransactions(ByteUtil.toHexString(privateKey.getAddress().getAddressBytes())).get(0).getTransactionType());
+        Assert.assertEquals(1, userState.getTransactions(Helper.bytesToHexString(privateKey.getAddress().getAddressBytes())).size());
+        Assert.assertEquals(TransactionDetails.RESULT_TYPE.RECEIPT_SUCCESS, userState.getTransactions(Helper.bytesToHexString(privateKey.getAddress().getAddressBytes())).get(0).getResult());
+        Assert.assertEquals(TransactionDetails.TRANSACTION_TYPE.Registered, userState.getTransactions(Helper.bytesToHexString(privateKey.getAddress().getAddressBytes())).get(0).getTransactionType());
 
         shutdownThreads();
     }
@@ -142,7 +142,7 @@ public class TransactionSenderTest {
         String receiptHash = "15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1";
         when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
-                        new ReceiptHash(ByteUtil.hexStringToBytes(receiptHash)),
+                        new ReceiptHash(Helper.hexStringToBytes(receiptHash)),
                         System.currentTimeMillis(),
                         TimeUnit.MILLISECONDS));
 
@@ -150,11 +150,11 @@ public class TransactionSenderTest {
                 RpcResult.unsuccessful("could not retrieve successReceipt"));
 
         PrivateKey privateKey = PrivateKey.fromBytes(
-                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
+                Helper.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new byte[0],
                 BigInteger.ONE);
 
@@ -176,7 +176,7 @@ public class TransactionSenderTest {
         String receiptHash = "15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1";
         when(nodeConnection.sendSignedTransaction(any(byte[].class))).thenReturn(
                 RpcResult.successful(
-                        new ReceiptHash(ByteUtil.hexStringToBytes(receiptHash)),
+                        new ReceiptHash(Helper.hexStringToBytes(receiptHash)),
                         System.currentTimeMillis(),
                         TimeUnit.MILLISECONDS));
 
@@ -187,11 +187,11 @@ public class TransactionSenderTest {
                         TimeUnit.MILLISECONDS));
 
         PrivateKey privateKey = PrivateKey.fromBytes(
-                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
+                Helper.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new byte[0],
                 BigInteger.ONE);
 
@@ -201,8 +201,8 @@ public class TransactionSenderTest {
 
         Thread.sleep(pollingIntervalMillis * 10);
 
-        Assert.assertEquals(1, userState.getTransactions(ByteUtil.toHexString(privateKey.getAddress().getAddressBytes())).size());
-        Assert.assertEquals(TransactionDetails.RESULT_TYPE.RECEIPT_FAILURE, userState.getTransactions(ByteUtil.toHexString(privateKey.getAddress().getAddressBytes())).get(0).getResult());
+        Assert.assertEquals(1, userState.getTransactions(Helper.bytesToHexString(privateKey.getAddress().getAddressBytes())).size());
+        Assert.assertEquals(TransactionDetails.RESULT_TYPE.RECEIPT_FAILURE, userState.getTransactions(Helper.bytesToHexString(privateKey.getAddress().getAddressBytes())).get(0).getResult());
 
         shutdownThreads();
     }
@@ -219,12 +219,12 @@ public class TransactionSenderTest {
             2_000_000L, 1_000_000L, 1_000_000,
             0, new byte[0], new byte[0], new byte[0], new byte[0],
             BigInteger.valueOf(currentBlockNumber),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa00080786fe191c705279e5713f6d927d1309d4d04f04044e1e69c09f80511fc")),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa00080786fe191c705279e5713f6d927d1309d4d04f04044e1e69c09f80511fc")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
             new ArrayList<>(Arrays.asList(new TransactionLog(
-                    new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                    ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"),
+                    new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                    Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"),
                     Arrays.asList("Registered".getBytes()),
                     BigInteger.ONE,
                     0,
@@ -235,9 +235,9 @@ public class TransactionSenderTest {
             2_000_000L, 1_000_000L, 1_000_000,
             0, new byte[0], new byte[0], new byte[0], new byte[0],
             BigInteger.valueOf(currentBlockNumber),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa00080786fe191c705279e5713f6d927d1309d4d04f04044e1e69c09f80511fc")),
-            new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa00080786fe191c705279e5713f6d927d1309d4d04f04044e1e69c09f80511fc")),
+            new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
             new ArrayList<>(),
             0);
 }

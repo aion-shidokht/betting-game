@@ -1,9 +1,8 @@
 package types;
 
 import internal.Assertion;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 
-import java.math.BigInteger;
 import java.util.List;
 
 public class Answer {
@@ -13,9 +12,9 @@ public class Answer {
 
     public static Answer from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
         Assertion.assertTopicSize(topics, 2);
-        return new Answer(new BigInteger(ByteUtil.toHexString(topics.get(1)), 16).intValue(),
+        return new Answer(Helper.byteArrayToInteger(topics.get(1)),
                 new String(data),
-                "0x" + ByteUtil.toHexString(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash));
     }
 
     private Answer(int statementId, String answer, String transactionHash) {

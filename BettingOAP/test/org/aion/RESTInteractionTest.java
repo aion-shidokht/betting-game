@@ -1,15 +1,12 @@
 package org.aion;
 
-import types.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -20,6 +17,7 @@ import server.SimpleHttpServer;
 import state.ProjectedState;
 import state.StatePopulator;
 import state.UserState;
+import types.Address;
 import util.*;
 import worker.BlockNumberCollector;
 import worker.EventListener;
@@ -229,7 +227,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 7, 9);
 
-        Assert.assertEquals(461, response.length());
+        Assert.assertEquals(465, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -275,7 +273,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 5, 7, 9);
 
-        Assert.assertEquals(461, response.length());
+        Assert.assertEquals(465, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -288,8 +286,8 @@ public class RESTInteractionTest {
     @Test
     public void sendTransaction() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, DecoderException {
         PrivateKey privateKey = PrivateKey.fromBytes(
-                ByteUtil.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
-        org.aion.harness.kernel.Address sender = new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"));
+                Helper.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
+        org.aion.harness.kernel.Address sender = new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"));
         SignedTransaction rawTransaction = TransactionCreator.buildRawTransaction(
                 privateKey,
                 BigInteger.ONE,
@@ -302,11 +300,11 @@ public class RESTInteractionTest {
                 0, new byte[0], new byte[0], rawTransaction.getTransactionHash(), new byte[0],
                 BigInteger.valueOf(currentBlockNumber),
                 sender,
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
                 new ArrayList<>(Arrays.asList(new TransactionLog(
-                        new org.aion.harness.kernel.Address(ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
-                        ByteUtil.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"),
+                        new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf")),
+                        Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"),
                         Arrays.asList("Registered".getBytes()),
                         BigInteger.ONE,
                         0,
@@ -329,9 +327,9 @@ public class RESTInteractionTest {
         Client c1 = getNewClient();
         WebTarget target = c1.target(URI);
         startThreads();
-        Response response = makePOSTCall(target, Hex.encodeHexString(rawTransaction.getSignedTransactionBytes()));
+        Response response = makePOSTCall(target, Helper.bytesToHexString(rawTransaction.getSignedTransactionBytes()));
         Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        Assert.assertEquals(ByteUtil.toHexString(rawTransaction.getTransactionHash()), response.readEntity(String.class));
+        Assert.assertEquals(Helper.bytesToHexString(rawTransaction.getTransactionHash()), response.readEntity(String.class));
         Thread.sleep(1000);
         Assert.assertEquals(1, userState.getTransactions("a0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf").size());
         c1.close();
@@ -424,7 +422,7 @@ public class RESTInteractionTest {
 
         String response = getPlayers(target1);
 
-        Assert.assertEquals(409, response.length());
+        Assert.assertEquals(413, response.length());
 
         JSONObject obj = new JSONObject(response);
 
@@ -526,7 +524,7 @@ public class RESTInteractionTest {
 
         startThreads();
 
-        String nonce = getNonce(target1, ByteUtil.toHexString(player.getAddressBytes()));
+        String nonce = getNonce(target1, Helper.bytesToHexString(player.getAddressBytes()));
         Assert.assertEquals("16", nonce);
 
         c1.close();

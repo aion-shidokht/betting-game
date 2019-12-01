@@ -1,7 +1,6 @@
 package util;
 
 import types.Address;
-import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -54,8 +53,8 @@ public class Log {
     @Override
     public String toString() {
         return "Log { address = " + this.address + ", topics = [" + topicsToString()
-                + "], data = 0x" + Hex.encodeHexString(this.data) + ", block number = " + this.blockNumber +
-                ", blockHash = 0x" + Hex.encodeHexString(this.blockHash) + ", transaction index = " + this.transactionIndex +
+                + "], data = 0x" + Helper.bytesToHexString(this.data) + ", block number = " + this.blockNumber +
+                ", blockHash = 0x" + Helper.bytesToHexString(this.blockHash) + ", transaction index = " + this.transactionIndex +
                 ", log index = " + this.logIndex + " }";
     }
 
@@ -95,7 +94,7 @@ public class Log {
 
         int index = 0;
         for (byte[] topic : this.topics) {
-            builder.append("0x").append(Hex.encodeHexString(topic));
+            builder.append("0x").append(Helper.bytesToHexString(topic));
 
             if (index < this.topics.size() - 1) {
                 builder.append(", ");

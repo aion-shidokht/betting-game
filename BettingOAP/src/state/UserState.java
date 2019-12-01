@@ -1,10 +1,10 @@
 package state;
 
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
 import types.*;
 import types.TransactionDetails;
 import org.aion.harness.kernel.Address;
+import util.Helper;
 import util.NodeConnection;
 
 import java.math.BigInteger;
@@ -31,11 +31,11 @@ public class UserState {
     }
 
     public void putTransaction(Address sender, TransactionDetails transactionDetails) {
-        String addressString = ByteUtil.toHexString(sender.getAddressBytes());
+        String addressString = Helper.bytesToHexString(sender.getAddressBytes());
         if (userTransactions.containsKey(addressString)) {
             userTransactions.get(addressString).add(transactionDetails);
         } else {
-            userTransactions.put(addressString, Arrays.asList(transactionDetails));
+            userTransactions.put(addressString, new ArrayList<>(Arrays.asList(transactionDetails)));
         }
     }
 

@@ -2,7 +2,6 @@ package org.aion;
 
 import types.Address;
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +9,7 @@ import state.ProjectedState;
 import state.StatePopulator;
 import types.BlockTuple;
 import types.Player;
+import util.Helper;
 import util.Log;
 import util.NodeConnection;
 import worker.EventListener;
@@ -120,7 +120,7 @@ public class StatePopulatorTest {
         Assert.assertEquals(BlockTuple.of(log2.blockNumber, log2.blockHash, Arrays.asList(lastExpectedId)), projectedState.getBlocks().getLast());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
-        Assert.assertEquals("0x" + Hex.encodeHexString(answerHash), projectedState.getStatements().get(lastExpectedId).getAnswerHash());
+        Assert.assertEquals(Helper.bytesToHexStringWith0x(answerHash), projectedState.getStatements().get(lastExpectedId).getAnswerHash());
         Assert.assertEquals(player, projectedState.getStatements().get(lastExpectedId).getPlayerAddress());
         Assert.assertEquals(statementId, projectedState.getStatements().get(lastExpectedId).getStatementId());
         Assert.assertEquals(new String(statement.getBytes()), projectedState.getStatements().get(lastExpectedId).getStatementString());

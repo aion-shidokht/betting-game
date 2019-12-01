@@ -1,10 +1,9 @@
 package types;
 
 import internal.Assertion;
-import main.SignedTransactionBuilder;
 import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 
 import java.math.BigInteger;
 
@@ -29,14 +28,14 @@ public class TransactionDetails {
             transactionDetails.transactionType = TRANSACTION_TYPE.fromString(eventName);
             // todo null case, throw an exception?
         }
-        transactionDetails.transactionHash = ByteUtil.toHexString(receipt.getTransactionHash());
+        transactionDetails.transactionHash = Helper.bytesToHexString(receipt.getTransactionHash());
         return transactionDetails;
     }
 
     public static TransactionDetails fromFailedTransaction(byte[] transactionHash) {
         TransactionDetails transactionDetails = new TransactionDetails();
         transactionDetails.result = RESULT_TYPE.NOT_SEALED;
-        transactionDetails.transactionHash = ByteUtil.toHexString(transactionHash);
+        transactionDetails.transactionHash = Helper.bytesToHexString(transactionHash);
         return transactionDetails;
     }
 

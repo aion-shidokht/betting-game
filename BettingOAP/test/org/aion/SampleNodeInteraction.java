@@ -7,18 +7,13 @@ import org.aion.harness.main.RPC;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
-import org.aion.util.conversions.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import state.ProjectedState;
 import state.StatePopulator;
 import state.UserState;
-import util.Log;
-import util.NodeConnection;
-import util.Pair;
-import util.TransactionCreator;
+import util.*;
 import worker.BlockNumberCollector;
 import worker.EventListener;
 import worker.ReceiptCollector;
@@ -70,8 +65,8 @@ public class SampleNodeInteraction {
 
     @Before
     public void setup() throws InvalidKeySpecException {
-        ownerPrivateKey = PrivateKey.fromBytes(ByteUtil.hexStringToBytes(ownerSK));
-        playerPrivateKey = PrivateKey.fromBytes(ByteUtil.hexStringToBytes(playerSK));
+        ownerPrivateKey = PrivateKey.fromBytes(Helper.hexStringToBytes(ownerSK));
+        playerPrivateKey = PrivateKey.fromBytes(Helper.hexStringToBytes(playerSK));
 
         ownerNonce = getNonce(ownerPrivateKey.getAddress());
         playerNonce = getNonce(playerPrivateKey.getAddress());
@@ -188,7 +183,7 @@ public class SampleNodeInteraction {
         Assert.assertEquals(2, projectedState.getVotes().size());
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(2, projectedState.getStatements().size());
-        Assert.assertFalse(projectedState.getGameStatus().isStopped());
+        Assert.assertTrue(projectedState.getGameStatus().isStopped());
         shutdown();
     }
 
@@ -244,7 +239,7 @@ public class SampleNodeInteraction {
             System.out.println("Contract deployed to " + contract);
 
             deployLog = new Log(new types.Address(contract.getAddressBytes()),
-                    Hex.decode("42657474696e67436f6e74726163744465706c6f796564"),
+                    Helper.hexStringToBytes("42657474696e67436f6e74726163744465706c6f796564"),
                     new ArrayList<>(),
                     receipt.getBlockNumber(),
                     0,

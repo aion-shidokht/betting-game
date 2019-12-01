@@ -8,8 +8,6 @@ import org.aion.harness.main.tools.*;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ public class NodeConnection {
 
     public RpcResult<ReceiptHash> sendSignedTransaction(byte[] signedTransactionBytes) throws InterruptedException {
 //        return rpc.sendSignedTransaction(transaction);
-        String params = Hex.encodeHexString(signedTransactionBytes);
+        String params = Helper.bytesToHexString(signedTransactionBytes);
         String payload = RpcPayload.generatePayload(RpcMethod.SEND_RAW_TRANSACTION, params);
 //            InternalRpcResult internalResult = this.rpc.call(payload, false);
         //todo replace later
@@ -45,11 +43,7 @@ public class NodeConnection {
             if (result == null) {
                 return RpcResult.unsuccessful("No receipt hash was returned, transaction was likely rejected.");
             } else {
-                try {
-                    return RpcResult.successful(new ReceiptHash(Hex.decodeHex(result)), internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
-                } catch (DecoderException var9) {
-                    return RpcResult.unsuccessful(var9.toString());
-                }
+                return RpcResult.successful(new ReceiptHash(Helper.hexStringToBytes(result)), internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
             }
         } else {
             return RpcResult.unsuccessful(internalResult.error);
@@ -61,7 +55,7 @@ public class NodeConnection {
         return rpc.getTransactionReceipt(receiptHash);
     }
 
-    public List<Log> getLogs(BigInteger fromBlock, String toBlock, Set<byte[]> filterTopics) throws InterruptedException, DecoderException {
+    public List<Log> getLogs(BigInteger fromBlock, String toBlock, Set<byte[]> filterTopics) throws InterruptedException {
         String payload = getLogsPayload(fromBlock, toBlock, filterTopics);
         //todo replace with the node_test_harness equivalent
         RpcCaller rpcCaller = new RpcCaller("127.0.0.1", "8545");
@@ -96,7 +90,7 @@ public class NodeConnection {
         paramsStart += "\"topics\":[[";
         int i = 1;
         for (byte[] topic : topics) {
-            paramsStart += "\"0x" + Hex.encodeHexString(truncatePadTopic(topic));
+            paramsStart += "\0x" + Helper.bytesToHexString(truncatePadTopic(topic));
             if (i < topics.size()) {
                 i++;
                 paramsStart += "\", ";

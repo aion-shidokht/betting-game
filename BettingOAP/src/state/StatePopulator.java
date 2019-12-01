@@ -52,7 +52,7 @@ public class StatePopulator {
                         addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash());
                         break;
                     case "UpdatedBalance":
-                        addedLogId = projectedState.addTransferValue(new BigInteger(new String(data).trim()), log.copyOfTransactionHash());
+                        addedLogId = projectedState.addTransferValue(new BigInteger(data), log.copyOfTransactionHash());
                         break;
                     case "GameStopped":
                         addedLogId = projectedState.stopGame(log.copyOfTransactionHash());

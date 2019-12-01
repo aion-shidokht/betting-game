@@ -1,7 +1,7 @@
 package types;
 
 import internal.Assertion;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ public class Player {
 
     public static Player from(byte[] data, byte[] transactionHash) {
         return new Player(new Address(data),
-                "0x" + ByteUtil.toHexString(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash));
     }
 
     private Player(Address playerAddress, String transactionHash) {

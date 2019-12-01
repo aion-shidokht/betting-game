@@ -2,7 +2,7 @@ package types;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import internal.Assertion;
-import org.aion.util.bytes.ByteUtil;
+import util.Helper;
 import util.Pair;
 
 import java.math.BigInteger;
@@ -36,26 +36,29 @@ public class Game {
     public void setAsStopped(Integer id, byte[] transactionHash) {
         this.isStopped = Pair.of(id, true);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
-        transactionHashes.put(id, "0x" + ByteUtil.toHexString(transactionHash));
+        transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
+
     }
 
     public void setPrizeDistributed(Integer id, byte[] transactionHash) {
         this.prizeDistributed = Pair.of(id, true);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
-        transactionHashes.put(id, "0x" + ByteUtil.toHexString(transactionHash));
+        transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
+
     }
 
     public void setWinners(Integer id, Address[] winners, byte[] transactionHash) {
         this.winners = Pair.of(id, winners);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
-        transactionHashes.put(id, "0x" + ByteUtil.toHexString(transactionHash));
+        transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
+
     }
 
     public void addValueTransfer(Integer id, BigInteger value, byte[] transactionHash) {
         Assertion.assertTrue(!transferredValues.containsKey(id));
         transferredValues.put(id, value);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
-        transactionHashes.put(id, "0x" + ByteUtil.toHexString(transactionHash));
+        transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
     }
 
     public boolean isStopped() {

@@ -5,11 +5,10 @@ import main.SignedTransactionBuilder;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.result.RpcResult;
-import org.aion.util.bytes.ByteUtil;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import state.UserState;
+import util.Helper;
 import util.NodeConnection;
 import util.Pair;
 import types.TransactionDetails;
@@ -70,9 +69,9 @@ public class TransactionSender implements Runnable {
                             transactionHashes.offer(Pair.of(hash, blockNumber));
                         } else {
                             //retry later?
-                            logger.debug("Blk: " + blockNumber + ", Could not send " + Hex.encodeHexString(toSend));
+                            logger.debug("Blk: " + blockNumber + ", Could not send " + Helper.bytesToHexString(toSend));
                             // todo decode sender address from the bytes
-                            userState.putTransaction(new Address(ByteUtil.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
+                            userState.putTransaction(new Address(Helper.hexStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000000")),
                                     TransactionDetails.fromFailedTransaction(SignedTransactionBuilder.getTransactionHashOfSignedTransaction(toSend)));
                         }
 
