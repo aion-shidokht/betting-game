@@ -1,6 +1,6 @@
 package org.aion;
 
-import types.Address;
+import org.aion.harness.kernel.Address;
 import util.Log;
 
 import java.math.BigInteger;
@@ -19,7 +19,7 @@ public class TestingHelper {
                                 int transactionIndex,
                                 byte[] blockHash) {
         return new Log(contractAddress,
-                player.toBytes(),
+                player.getAddressBytes(),
                 Arrays.asList("Registered".getBytes()),
                 blockNumber,
                 transactionIndex,
@@ -38,7 +38,7 @@ public class TestingHelper {
         return new Log(contractAddress,
                 answer,
                 Arrays.asList("Voted".getBytes(),
-                        player.toBytes(),
+                        player.getAddressBytes(),
                         BigInteger.valueOf(statementId).toByteArray()),
                 blockNumber,
                 transactionIndex,
@@ -58,7 +58,7 @@ public class TestingHelper {
         return new Log(contractAddress,
                 statement,
                 Arrays.asList("SubmittedStatement".getBytes(),
-                        player.toBytes(),
+                        player.getAddressBytes(),
                         BigInteger.valueOf(statementId).toByteArray(),
                         answerHash),
                 blockNumber,

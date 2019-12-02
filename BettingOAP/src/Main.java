@@ -1,4 +1,5 @@
-import types.Address;
+
+import org.aion.harness.kernel.Address;
 import util.*;
 
 import java.math.BigInteger;

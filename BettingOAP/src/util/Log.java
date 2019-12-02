@@ -1,13 +1,12 @@
 package util;
 
-import types.Address;
+import org.aion.harness.kernel.Address;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-// todo replace with a modified version in node_test_harness
 public class Log {
     public final Address address;
     private final byte[] data;

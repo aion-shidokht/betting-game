@@ -1,8 +1,7 @@
 package org.aion;
 
 import types.Player;
-import types.Address;
-import org.apache.commons.codec.DecoderException;
+import org.aion.harness.kernel.Address;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,14 +25,14 @@ public class EventListenerTest {
     private static long pollingIntervalMillis = 50;
     private static Log deployLog;
     private static byte[] Hash = new byte[32];
-    private static Address Address = new Address(new byte[32]);
+    private static Address contractAddress = new Address(new byte[32]);
     private Thread eventListenerThread;
     private ProjectedState projectedState;
 
     Set<byte[]> topics = TestingHelper.getContractTopics();
     @Before
     public void setup() {
-        deployLog = TestingHelper.getOneTopicEvent(Address,
+        deployLog = TestingHelper.getOneTopicEvent(contractAddress,
                 BigInteger.TEN,
                 "BettingContractDeployed",
                 0,
@@ -48,7 +47,8 @@ public class EventListenerTest {
                 deployLog.blockNumber,
                 pollingIntervalMillis,
                 BigInteger.valueOf(5),
-                topics);
+                topics,
+                contractAddress);
 
         eventListenerThread = new Thread(eventListener);
     }
@@ -63,7 +63,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testSuccessfulFirstLogMatchSameBlock() throws DecoderException, InterruptedException {
+    public void testSuccessfulFirstLogMatchSameBlock() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -72,13 +72,13 @@ public class EventListenerTest {
         Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
 
-        when(nodeConnection.getLogs(blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics))
+        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -90,14 +90,14 @@ public class EventListenerTest {
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId).getPlayerAddress());
-        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2).getPlayerAddress());
+        Assert.assertArrayEquals(player1.getAddressBytes(), projectedState.getPlayers().get(expectedId).getPlayerAddress().toBytes());
+        Assert.assertArrayEquals(player2.getAddressBytes(), projectedState.getPlayers().get(expectedId + 2).getPlayerAddress().toBytes());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
     }
 
     @Test
-    public void testSuccessfulUnorderedBlockEvents() throws DecoderException, InterruptedException {
+    public void testSuccessfulUnorderedBlockEvents() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -106,13 +106,13 @@ public class EventListenerTest {
         Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
 
-        when(nodeConnection.getLogs(blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, registerLog, submitLog)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics))
+        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -124,14 +124,14 @@ public class EventListenerTest {
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
-        Assert.assertEquals(player1, projectedState.getPlayers().get(expectedId).getPlayerAddress());
-        Assert.assertEquals(player2, projectedState.getPlayers().get(expectedId + 2).getPlayerAddress());
+        Assert.assertArrayEquals(player1.getAddressBytes(), projectedState.getPlayers().get(expectedId).getPlayerAddress().toBytes());
+        Assert.assertArrayEquals(player2.getAddressBytes(), projectedState.getPlayers().get(expectedId + 2).getPlayerAddress().toBytes());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
     }
 
     @Test
-    public void testReorgRemoveEvent() throws DecoderException, InterruptedException {
+    public void testReorgRemoveEvent() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -141,18 +141,18 @@ public class EventListenerTest {
         Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player2, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         // chain reorgs
-        when(nodeConnection.getLogs(BigInteger.valueOf(110), "latest", topics))
+        when(nodeConnection.getLogs(BigInteger.valueOf(110), "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
         startThreads();
@@ -168,7 +168,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgNewEvent() throws DecoderException, InterruptedException {
+    public void testReorgNewEvent() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -180,18 +180,18 @@ public class EventListenerTest {
         Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, newVoteLog, voteLogReplacement)));
 
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(voteLogReplacement)));
 
         startThreads();
@@ -211,7 +211,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgUntilDeployEvent() throws DecoderException, InterruptedException {
+    public void testReorgUntilDeployEvent() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
@@ -229,22 +229,22 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
         startThreads();
@@ -263,7 +263,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgNewDeployEventLater() throws DecoderException, InterruptedException {
+    public void testReorgNewDeployEventLater() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
@@ -284,28 +284,28 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(20), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(Set.class)))//eq(new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())))))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(Set.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
 
         startThreads();
@@ -325,7 +325,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgNewDeployEventEarlier() throws DecoderException, InterruptedException {
+    public void testReorgNewDeployEventEarlier() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
@@ -348,28 +348,28 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog, answerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2, answerLogReplacement)));
 
         startThreads();
@@ -394,7 +394,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgOnlyDeployEvent() throws DecoderException, InterruptedException {
+    public void testReorgOnlyDeployEvent() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -407,25 +407,25 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(15), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>());
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         startThreads();
@@ -441,7 +441,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgOnlyDeployEventBefore() throws DecoderException, InterruptedException {
+    public void testReorgOnlyDeployEventBefore() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -454,25 +454,25 @@ public class EventListenerTest {
         Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>());
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>());
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         startThreads();
@@ -488,7 +488,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgUntilDeployEventUnorderedReturn() throws DecoderException, InterruptedException {
+    public void testReorgUntilDeployEventUnorderedReturn() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
@@ -506,22 +506,22 @@ public class EventListenerTest {
         Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLogReplacement, submitLogReplacement, registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2Replacement, voteLogReplacement, submitLog2)));
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, voteLog)))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2, voteLogReplacement, registerLog2Replacement)));
         // chain reorgs
-        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
         startThreads();
@@ -540,7 +540,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgDeployEvent() throws DecoderException, InterruptedException {
+    public void testReorgDeployEvent() throws InterruptedException {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
@@ -553,20 +553,20 @@ public class EventListenerTest {
         Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(5), player1, 1, newDeployBlockHash);
 
         // 10 -> 100
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)))
                 .thenReturn(new ArrayList<>());
         // 100 -> 102
-        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)))
                 .thenReturn(new ArrayList<>());
         // 102 -> 110
-        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class)))
+        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
         // chain reorgs
-        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics))
+        when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(Arrays.asList(newDeployLog, registerLogReplacement));
 
         startThreads();
@@ -581,7 +581,7 @@ public class EventListenerTest {
     }
 
     @Test
-    public void testReorgScoreCalcualtion() throws DecoderException, InterruptedException {
+    public void testReorgScoreCalculation() throws InterruptedException {
         String answer = "A";
         int statementId = 1;
 
@@ -623,9 +623,9 @@ public class EventListenerTest {
         logs3.addAll(Arrays.asList(voteLogs));
         logs3.addAll(Arrays.asList(revealedAnswerLogReplacement));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", topics)).thenReturn(logs2);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", topics))
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress)).thenReturn(logs1);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", topics, contractAddress)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", topics, contractAddress))
                 .thenReturn(Arrays.asList(revealedAnswerLog, revealedAnswerLog2))
                 .thenReturn(Arrays.asList(revealedAnswerLogReplacement));
 
@@ -642,8 +642,9 @@ public class EventListenerTest {
     }
 
     private boolean containsPlayer(Map<Integer, Player> playerMap, Address player) {
+        types.Address internalAddress = new types.Address(player.getAddressBytes());
         for (Player p : playerMap.values()) {
-            if (p.getPlayerAddress().equals(player)) {
+            if (p.getPlayerAddress().equals(internalAddress)) {
                 return true;
             }
         }

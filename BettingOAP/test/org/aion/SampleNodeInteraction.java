@@ -3,10 +3,11 @@ package org.aion;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
-import org.aion.harness.main.RPC;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
+
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class SampleNodeInteraction {
@@ -43,8 +43,6 @@ public class SampleNodeInteraction {
     private static PrivateKey playerPrivateKey;
     private static PrivateKey ownerPrivateKey;
     private static Address contract;
-
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
 
     private static BlockNumberCollector blockNumberCollector;
     private static LinkedBlockingDeque<byte[]> rawTransactions;
@@ -62,11 +60,16 @@ public class SampleNodeInteraction {
     private Thread eventListenerThread;
 
     private ProjectedState projectedState = new ProjectedState();
+    private static NodeConnection nodeConnection;
 
     @Before
     public void setup() throws InvalidKeySpecException {
         ownerPrivateKey = PrivateKey.fromBytes(Helper.hexStringToBytes(ownerSK));
         playerPrivateKey = PrivateKey.fromBytes(Helper.hexStringToBytes(playerSK));
+
+        nodeConnection = new NodeConnection("127.0.0.1", "8545");
+
+
 
         ownerNonce = getNonce(ownerPrivateKey.getAddress());
         playerNonce = getNonce(playerPrivateKey.getAddress());
@@ -74,14 +77,11 @@ public class SampleNodeInteraction {
         deployContract(ownerPrivateKey, ownerNonce);
         ownerNonce = ownerNonce.add(BigInteger.ONE);
 
-        NodeConnection nodeConnection = new NodeConnection(rpc, new types.Address(contract.getAddressBytes()));
-
         long pollingIntervalMilliSeconds = 5000;
         blockNumberCollector = new BlockNumberCollector(nodeConnection, pollingIntervalMilliSeconds, 3);
 
         rawTransactions = new LinkedBlockingDeque<>(100);
         transactionHashes = new LinkedBlockingDeque<>(100);
-        LinkedBlockingDeque<TransactionReceipt> transactionReceipts = new LinkedBlockingDeque<>(100);
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
         UserState userState = new UserState(projectedState, nodeConnection);
@@ -107,7 +107,8 @@ public class SampleNodeInteraction {
                 startingBlock,
                 pollingIntervalMilliSeconds,
                 BigInteger.TEN,
-                TestingHelper.getContractTopics());
+                TestingHelper.getContractTopics(),
+                contract);
 
         transactionSenderThread = new Thread(transactionSender);
         receiptCollectorThread = new Thread(receiptCollector);
@@ -120,7 +121,7 @@ public class SampleNodeInteraction {
         eventListenerThread.start();
     }
 
-    //    @After
+    @After
     public void shutdown() throws InterruptedException {
         blockNumberCollector.shutdown();
         transactionSender.shutdown();
@@ -184,7 +185,6 @@ public class SampleNodeInteraction {
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertTrue(projectedState.getGameStatus().isStopped());
-        shutdown();
     }
 
     private static SignedTransaction register(Address player) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
@@ -215,7 +215,7 @@ public class SampleNodeInteraction {
     private static BigInteger getNonce(Address address) {
         BigInteger nonce = null;
         try {
-            RpcResult<BigInteger> result = rpc.getNonce(address);
+            RpcResult<BigInteger> result = nodeConnection.getNonce(address);
             if (result.isSuccess()) {
                 nonce = result.getResult();
             } else {
@@ -262,7 +262,7 @@ public class SampleNodeInteraction {
             throws InterruptedException {
 
         System.out.println("Sending the deployment transaction...");
-        RpcResult<ReceiptHash> sendResult = rpc.sendSignedTransaction(transaction);
+        RpcResult<ReceiptHash> sendResult = nodeConnection.sendSignedTransaction(transaction.getSignedTransactionBytes());
         Assert.assertTrue(sendResult.isSuccess());
 
         ReceiptHash txHash = sendResult.getResult();
@@ -271,7 +271,7 @@ public class SampleNodeInteraction {
 
         RpcResult<TransactionReceipt> receiptResult;
         do {
-            receiptResult = rpc.getTransactionReceipt(txHash);
+            receiptResult = nodeConnection.getTransactionReceipt(txHash);
             Thread.sleep(1000);
         } while (!receiptResult.isSuccess());
 

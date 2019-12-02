@@ -2,11 +2,10 @@ package util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import types.Address;
-import org.aion.harness.main.RPC;
 import org.aion.harness.main.tools.*;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
+import org.aion.harness.main.types.internal.TransactionReceiptBuilder;
 import org.aion.harness.result.RpcResult;
 
 import java.math.BigInteger;
@@ -14,29 +13,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.aion.harness.kernel.Address;
+import org.apache.commons.codec.DecoderException;
 
 public class NodeConnection {
 
-    private final RPC rpc;
-    private final Address contractAddress;
+    private final RpcCaller rpc;
 
-    public NodeConnection(RPC rpc, Address contractAddress) {
-        this.rpc = rpc;
-        this.contractAddress = contractAddress;
+    public NodeConnection(String ip, String port) {
+        this.rpc = new RpcCaller(ip, port);
     }
 
+    // taken from node-test-harness
     public RpcResult<Long> blockNumber() throws InterruptedException {
-        return rpc.blockNumber();
+        String params = "";
+        String payload = RpcPayload.generatePayload(RpcMethod.BLOCK_NUMBER, params);
+        InternalRpcResult internalResult = this.rpc.call(payload, false);
+        if (internalResult.success) {
+            JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+            String result = outputParser.attributeToString("result");
+            if (result == null) {
+                throw new IllegalStateException(internalResult.output);
+            } else {
+                String rpcResult = (new JsonParser()).parse(internalResult.output).getAsJsonObject().get("result").getAsString();
+                return RpcResult.successful(Long.parseLong(rpcResult, 10), internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+            }
+        } else {
+            return RpcResult.unsuccessful(internalResult.error);
+        }
     }
 
     public RpcResult<ReceiptHash> sendSignedTransaction(byte[] signedTransactionBytes) throws InterruptedException {
-//        return rpc.sendSignedTransaction(transaction);
         String params = Helper.bytesToHexString(signedTransactionBytes);
         String payload = RpcPayload.generatePayload(RpcMethod.SEND_RAW_TRANSACTION, params);
-//            InternalRpcResult internalResult = this.rpc.call(payload, false);
-        //todo replace later
-        RpcCaller rpcCaller = new RpcCaller("127.0.0.1", "8545");
-        InternalRpcResult internalResult = rpcCaller.call(payload, false);
+        InternalRpcResult internalResult = rpc.call(payload, false);
         if (internalResult.success) {
             JsonStringParser outputParser = new JsonStringParser(internalResult.output);
             String result = outputParser.attributeToString("result");
@@ -51,15 +61,36 @@ public class NodeConnection {
 
     }
 
+    // taken from node-test-harness
     public RpcResult<TransactionReceipt> getTransactionReceipt(ReceiptHash receiptHash) throws InterruptedException {
-        return rpc.getTransactionReceipt(receiptHash);
+        if (receiptHash == null) {
+            throw new NullPointerException("Cannot get a receipt from a null receipt hash.");
+        } else {
+            String params = Helper.bytesToHexString(receiptHash.getHash());
+            String payload = RpcPayload.generatePayload(RpcMethod.GET_TRANSACTION_RECEIPT, params);
+            InternalRpcResult internalResult = this.rpc.call(payload, false);
+            if (internalResult.success) {
+                JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+                String result = outputParser.attributeToString("result");
+                if (result == null) {
+                    return RpcResult.unsuccessful("No transaction receipt was returned, the transaction may still be processing.");
+                } else {
+                    try {
+                        TransactionReceipt receipt = (new TransactionReceiptBuilder()).buildFromJsonString(result);
+                        return RpcResult.successful(receipt, internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+                    } catch (DecoderException e) {
+                        return RpcResult.unsuccessful(e.toString());
+                    }
+                }
+            } else {
+                return RpcResult.unsuccessful(internalResult.error);
+            }
+        }
     }
 
-    public List<Log> getLogs(BigInteger fromBlock, String toBlock, Set<byte[]> filterTopics) throws InterruptedException {
+    public List<Log> getLogs(BigInteger fromBlock, String toBlock, Set<byte[]> filterTopics, Address contractAddress) throws InterruptedException {
         String payload = getLogsPayload(fromBlock, toBlock, filterTopics);
-        //todo replace with the node_test_harness equivalent
-        RpcCaller rpcCaller = new RpcCaller("127.0.0.1", "8545");
-        InternalRpcResult internalResult = rpcCaller.call(payload, false);
+        InternalRpcResult internalResult = rpc.call(payload, false);
         ArrayList<Log> logArray = new ArrayList<>();
 
         if (internalResult.success) {
@@ -79,8 +110,26 @@ public class NodeConnection {
         return logArray;
     }
 
-    public RpcResult<BigInteger> getNonce(org.aion.harness.kernel.Address address) throws InterruptedException {
-        return rpc.getNonce(address);
+    // taken from node-test-harness
+    public RpcResult<BigInteger> getNonce(Address address) throws InterruptedException {
+        if (address == null) {
+            throw new IllegalArgumentException("Cannot get nonce of a null address.");
+        } else {
+            String params = Helper.bytesToHexString(address.getAddressBytes());
+            String payload = RpcPayload.generatePayload(RpcMethod.GET_NONCE, params);
+            InternalRpcResult internalResult = this.rpc.call(payload, false);
+            if (internalResult.success) {
+                JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+                String result = outputParser.attributeToString("result");
+                if (result == null) {
+                    throw new IllegalStateException(internalResult.output);
+                } else {
+                    return RpcResult.successful(new BigInteger(result, 16), internalResult.getTimeOfCall(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+                }
+            } else {
+                return RpcResult.unsuccessful(internalResult.error);
+            }
+        }
     }
 
     private String getLogsPayload(BigInteger fromBlock, String toBlock, Set<byte[]> topics) {
@@ -90,7 +139,7 @@ public class NodeConnection {
         paramsStart += "\"topics\":[[";
         int i = 1;
         for (byte[] topic : topics) {
-            paramsStart += "\0x" + Helper.bytesToHexString(truncatePadTopic(topic));
+            paramsStart += "\"0x" + Helper.bytesToHexString(truncatePadTopic(topic));
             if (i < topics.size()) {
                 i++;
                 paramsStart += "\", ";

@@ -1,7 +1,6 @@
 package org.aion;
 
-import types.Address;
-import org.apache.commons.codec.DecoderException;
+import org.aion.harness.kernel.Address;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,8 @@ public class StatePopulatorTest {
                 deployLog.blockNumber,
                 pollingIntervalMillis,
                 BigInteger.ONE,
-                topics);
+                topics,
+                sampleAddress);
 
         eventListenerThread = new Thread(eventListener);
     }
@@ -64,8 +64,8 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testDeployEvent() throws DecoderException, InterruptedException {
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog)));
+    public void testDeployEvent() throws InterruptedException {
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -77,11 +77,11 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testRegisterEvent() throws DecoderException, InterruptedException {
+    public void testRegisterEvent() throws InterruptedException {
         Address player = new Address(getRandomAddressBytes());
         Log log = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -93,11 +93,11 @@ public class StatePopulatorTest {
         Assert.assertEquals(BlockTuple.of(log.blockNumber, log.blockHash, Arrays.asList(expectedId)), projectedState.getBlocks().getLast());
 
         Assert.assertEquals(1, projectedState.getPlayers().size());
-        Assert.assertEquals(player, projectedState.getPlayers().get(expectedId).getPlayerAddress());
+        Assert.assertArrayEquals(player.getAddressBytes(), projectedState.getPlayers().get(expectedId).getPlayerAddress().toBytes());
     }
 
     @Test
-    public void testSubmitAnswerEvent() throws DecoderException, InterruptedException {
+    public void testSubmitAnswerEvent() throws InterruptedException {
         String statement = "Q";
         int statementId = 1;
         byte[] answerHash = getRandomAddressBytes();
@@ -106,8 +106,8 @@ public class StatePopulatorTest {
         Log log1 = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
 
         Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, statement.getBytes(), answerHash, 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2)));
-        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log2)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2)));
+        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log2)));
 
         startThreads();
 
@@ -121,13 +121,14 @@ public class StatePopulatorTest {
 
         Assert.assertEquals(1, projectedState.getStatements().size());
         Assert.assertEquals(Helper.bytesToHexStringWith0x(answerHash), projectedState.getStatements().get(lastExpectedId).getAnswerHash());
-        Assert.assertEquals(player, projectedState.getStatements().get(lastExpectedId).getPlayerAddress());
+        Assert.assertArrayEquals(player.getAddressBytes(), projectedState.getStatements().get(lastExpectedId).getPlayerAddress().toBytes());
+
         Assert.assertEquals(statementId, projectedState.getStatements().get(lastExpectedId).getStatementId());
         Assert.assertEquals(new String(statement.getBytes()), projectedState.getStatements().get(lastExpectedId).getStatementString());
     }
 
     @Test
-    public void testVoteEvent() throws DecoderException, InterruptedException {
+    public void testVoteEvent() throws InterruptedException {
         String answer = "A";
         int statementId = 1;
         // need to register first
@@ -138,9 +139,9 @@ public class StatePopulatorTest {
 
         Log log3 = getVotedLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, answer.getBytes(), 0, log1.blockHash);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
-        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
-        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log2, log3)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
+        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
+        when(nodeConnection.getLogs(log2.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log2, log3)));
 
         startThreads();
 
@@ -154,7 +155,7 @@ public class StatePopulatorTest {
         int expectedId = 3;
         Assert.assertEquals(1, projectedState.getVotes().size());
         Assert.assertEquals(answer, projectedState.getVotes().get(expectedId).getGuessedAnswer());
-        Assert.assertEquals(player, projectedState.getVotes().get(expectedId).getPlayerAddress());
+        Assert.assertArrayEquals(player.getAddressBytes(), projectedState.getVotes().get(expectedId).getPlayerAddress().toBytes());
         Assert.assertEquals(statementId, projectedState.getVotes().get(expectedId).getStatementId());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
@@ -163,7 +164,7 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testRevealAnswerEvent() throws DecoderException, InterruptedException {
+    public void testRevealAnswerEvent() throws InterruptedException {
         String answer = "A";
         int statementId = 1;
         // need to register first
@@ -174,8 +175,8 @@ public class StatePopulatorTest {
 
         Log log3 = getRevealedAnswerLog(deployLog.address, blockNumber, statementId, answer.getBytes(), 0, log1.blockHash);
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
-        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
+        when(nodeConnection.getLogs(log1.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
 
         startThreads();
 
@@ -197,7 +198,7 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testScoreCalculation() throws DecoderException, InterruptedException {
+    public void testScoreCalculation() throws InterruptedException {
         String answer = "A";
         int statementId = 1;
 
@@ -226,8 +227,8 @@ public class StatePopulatorTest {
         logs2.addAll(Arrays.asList(voteLogs));
         logs2.addAll(Arrays.asList(revealedAnswerLog));
 
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", topics)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(logs1);
+        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", topics, sampleAddress)).thenReturn(logs2);
 
         startThreads();
 
@@ -242,12 +243,12 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testGameStoppedEvent() throws DecoderException, InterruptedException {
+    public void testGameStoppedEvent() throws InterruptedException {
         Address player = new Address(getRandomAddressBytes());
 
         Log log = getOneTopicEvent(player, blockNumber, "GameStopped", 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);
@@ -262,12 +263,12 @@ public class StatePopulatorTest {
     }
 
     @Test
-    public void testDistributedPrizeEvent() throws DecoderException, InterruptedException {
+    public void testDistributedPrizeEvent() throws InterruptedException {
         Address player = new Address(getRandomAddressBytes());
 
         Log log = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0, null);
-        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
-        when(nodeConnection.getLogs(log.blockNumber, "latest", topics)).thenReturn(new ArrayList<>(Arrays.asList(log)));
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
+        when(nodeConnection.getLogs(log.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
 
         Thread.sleep(pollingIntervalMillis * 10);

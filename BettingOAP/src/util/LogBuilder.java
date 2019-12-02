@@ -3,7 +3,7 @@ package util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import types.Address;
+import org.aion.harness.kernel.Address;
 import org.aion.harness.main.tools.JsonStringParser;
 
 import java.math.BigInteger;
@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-// todo replace with a modified version in node_test_harness
 public class LogBuilder {
     private Address address = null;
     private byte[] data = null;

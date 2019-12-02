@@ -1,5 +1,4 @@
-import types.Address;
-import org.aion.harness.main.RPC;
+import org.aion.harness.kernel.Address;
 import org.aion.harness.main.types.ReceiptHash;
 import org.glassfish.grizzly.http.server.HttpServer;
 import server.SimpleHttpServer;
@@ -16,7 +15,6 @@ import worker.TransactionSender;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,8 +47,8 @@ public class BettingGame {
                        long pollingIntervalMillis,
                        String serverHostName,
                        String serverPort) {
-        RPC rpc = RPC.newRpc(ip, port);
-        NodeConnection nodeConnection = new NodeConnection(rpc, contractAddress);
+
+        NodeConnection nodeConnection = new NodeConnection(ip, port);
 
         ProjectedState projectedState = new ProjectedState();
         StatePopulator statePopulator = new StatePopulator(projectedState);
@@ -68,7 +66,8 @@ public class BettingGame {
                 startingBlockNumber,
                 pollingIntervalMillis,
                 range,
-                getContractTopics());
+                getContractTopics(),
+                contractAddress);
 
         blockNumberCollector = new BlockNumberCollector(
                 nodeConnection,

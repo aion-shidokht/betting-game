@@ -2,7 +2,7 @@ package worker;
 
 import internal.Assertion;
 import internal.CriticalException;
-import org.apache.commons.codec.DecoderException;
+import org.aion.harness.kernel.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import state.StatePopulator;
@@ -25,13 +25,15 @@ public class EventListener implements Runnable {
     private volatile boolean shutdown = false;
     private final BigInteger deploymentLogRangeCheck;
     private final Set<byte[]> topics;
+    private final Address contractAddress;
 
     public EventListener(NodeConnection nodeConnection,
                          StatePopulator statePopulator,
                          BigInteger startingBlockNumber,
                          long pollIntervalMilliSeconds,
                          BigInteger deploymentLogRangeCheck,
-                         Set<byte[]> topics) {
+                         Set<byte[]> topics,
+                         Address contractAddress) {
         this.nodeConnection = nodeConnection;
         this.statePopulator = statePopulator;
         this.lastRetrievedBlockNumber = startingBlockNumber;
@@ -39,6 +41,7 @@ public class EventListener implements Runnable {
         this.pollIntervalMilliSeconds = pollIntervalMilliSeconds;
         this.deploymentLogRangeCheck = deploymentLogRangeCheck;
         this.topics = Collections.unmodifiableSet(topics);
+        this.contractAddress = contractAddress;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class EventListener implements Runnable {
         while (!shutdown) {
             try {
                 logger.info("Polling from " + lastRetrievedBlockNumber);
-                List<Log> logs = nodeConnection.getLogs(lastRetrievedBlockNumber, "latest", topics);
+                List<Log> logs = nodeConnection.getLogs(lastRetrievedBlockNumber, "latest", topics, contractAddress);
 
                 List<Log> sortedLogs = sortLogs(logs);
 
@@ -99,7 +102,7 @@ public class EventListener implements Runnable {
             // validate the previous block (from the one that was marked to be removed)
             blockTuple = itr.previous();
 
-            List<Log> logs = nodeConnection.getLogs(blockTuple.getBlockNumber(), "latest", topics);
+            List<Log> logs = nodeConnection.getLogs(blockTuple.getBlockNumber(), "latest", topics, contractAddress);
             // if no logs are present, revert to previous
             if (logs.size() > 0) {
                 sortedLogs = sortLogs(logs);
@@ -123,7 +126,8 @@ public class EventListener implements Runnable {
             logger.info("Fetching the deployment log..");
             List<Log> newDeploymentLog = nodeConnection.getLogs(startingBlockNumber.subtract(deploymentLogRangeCheck),
                     "latest",
-                    new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())));
+                    new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())),
+                    contractAddress);
             Assertion.assertTrue(newDeploymentLog.size() == 1);
 
             this.lastRetrievedBlockHash = null;
