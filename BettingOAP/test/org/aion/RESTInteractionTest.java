@@ -30,6 +30,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -74,7 +75,7 @@ public class RESTInteractionTest {
 
     @Before
     public void setup() throws InterruptedException {
-        URI = SimpleHttpServer.getBaseUri();
+        URI = SimpleHttpServer.getBaseUri("localhost", "8025");
         when(nodeConnection.blockNumber()).thenAnswer(getNextBlock);
 
         deployLog = TestingHelper.getOneTopicEvent(Address,
@@ -128,7 +129,7 @@ public class RESTInteractionTest {
         queuePopulator = new QueuePopulator(rawTransactions);
     }
 
-    private void startThreads() {
+    private void startThreads() throws IOException {
         server = startServer();
         eventListenerThread.start();
         transactionSenderThread.start();
@@ -149,7 +150,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetAllStatements() throws DecoderException, InterruptedException {
+    public void testGetAllStatements() throws InterruptedException, IOException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -192,7 +193,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetVotes() throws DecoderException, InterruptedException {
+    public void testGetVotes() throws InterruptedException, IOException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -238,7 +239,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetVotesNotPresent() throws DecoderException, InterruptedException {
+    public void testGetVotesNotPresent() throws InterruptedException, IOException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -284,7 +285,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void sendTransaction() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, DecoderException {
+    public void sendTransaction() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
         PrivateKey privateKey = PrivateKey.fromBytes(
                 Helper.hexStringToBytes("0x15c6fce4f6d59f5207ac26bdd0190713b1fdb207411301a1eaaf4b1875aecaa1"));
         org.aion.harness.kernel.Address sender = new org.aion.harness.kernel.Address(Helper.hexStringToBytes("0xa0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf"));
@@ -337,7 +338,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetVotesMulti() throws DecoderException, InterruptedException {
+    public void testGetVotesMulti() throws InterruptedException, IOException {
         int clientSize = 100;
         WebTarget[] webTargets = new WebTarget[clientSize];
 
@@ -400,7 +401,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetAllPlayers() throws DecoderException, InterruptedException {
+    public void testGetAllPlayers() throws InterruptedException, IOException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -435,7 +436,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetAnswer() throws DecoderException, InterruptedException {
+    public void testGetAnswer() throws IOException, InterruptedException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -486,7 +487,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetGame() throws DecoderException, InterruptedException {
+    public void testGetGame() throws IOException, InterruptedException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
         Address player = new Address(TestingHelper.getRandomAddressBytes());
@@ -514,7 +515,7 @@ public class RESTInteractionTest {
     }
 
     @Test
-    public void testGetNonce() throws DecoderException, InterruptedException {
+    public void testGetNonce() throws IOException, InterruptedException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
         org.aion.harness.kernel.Address player = new org.aion.harness.kernel.Address(TestingHelper.getRandomAddressBytes());
@@ -567,8 +568,10 @@ public class RESTInteractionTest {
         return ClientBuilder.newClient();
     }
 
-    private HttpServer startServer() {
-        return SimpleHttpServer.startServer(userState, queuePopulator);
+    private HttpServer startServer() throws IOException {
+        HttpServer server = SimpleHttpServer.startServer(userState, queuePopulator, "localhost", "8025");
+        server.start();
+        return server;
     }
 
     Answer getNextBlock = invocation -> {

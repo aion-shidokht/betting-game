@@ -13,28 +13,17 @@ import java.util.Optional;
 
 public class SimpleHttpServer {
 
-    private static final String BASE_URI;
-    private static final String protocol;
-    private static final Optional<String> host;
-    private static final String path;
-    private static final Optional<String> port;
+    private static final String protocol = "http://";
+    private static final String path = "bettingOAP";
 
-    static {
-        protocol = "http://";
-        host = Optional.ofNullable(System.getenv("HOSTNAME"));
-        port = Optional.ofNullable(System.getenv("PORT"));
-        path = "bettingOAP";
-        BASE_URI = protocol + host.orElse("localhost") + ":" + port.orElse("8025") + "/" + path + "/";
-    }
-
-
-    public static HttpServer startServer(UserState userState, QueuePopulator queuePopulator) {
+    public static HttpServer startServer(UserState userState, QueuePopulator queuePopulator, String host, String port) {
+        String BASE_URI = getBaseUri(host, port);
         // create a resource config that scans for JAX-RS resources and providers
         final ResourceConfig rc = createResourceConfig(userState, queuePopulator);
 
-        // create and start a new instance of grizzly http server
+        // create a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc, false);
     }
 
     private static ResourceConfig createResourceConfig(UserState userState, QueuePopulator queuePopulator) {
@@ -50,7 +39,7 @@ public class SimpleHttpServer {
         return resourceConfig;
     }
 
-    public static String getBaseUri() {
-        return BASE_URI;
+    public static String getBaseUri(String host, String port) {
+        return protocol + host + ":" + port + "/" + path + "/";
     }
 }
