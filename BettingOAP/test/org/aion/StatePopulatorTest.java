@@ -46,7 +46,7 @@ public class StatePopulatorTest {
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
-                deployLog,
+                deployLog.blockNumber,
                 pollingIntervalMillis,
                 BigInteger.ONE,
                 topics);

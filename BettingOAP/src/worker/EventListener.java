@@ -19,25 +19,23 @@ public class EventListener implements Runnable {
     private final long pollIntervalMilliSeconds;
     private final Logger logger = LoggerFactory.getLogger("EventListener");
     private BigInteger lastRetrievedBlockNumber;
+    private BigInteger startingBlockNumber;
     private byte[] lastRetrievedBlockHash;
     private StatePopulator statePopulator;
-    private Log deployedLog;
     private volatile boolean shutdown = false;
     private final BigInteger deploymentLogRangeCheck;
     private final Set<byte[]> topics;
 
     public EventListener(NodeConnection nodeConnection,
                          StatePopulator statePopulator,
-                         Log deployedLog,
+                         BigInteger startingBlockNumber,
                          long pollIntervalMilliSeconds,
                          BigInteger deploymentLogRangeCheck,
                          Set<byte[]> topics) {
         this.nodeConnection = nodeConnection;
-        this.deployedLog = deployedLog;
         this.statePopulator = statePopulator;
-        statePopulator.populate(Arrays.asList(deployedLog));
-        this.lastRetrievedBlockHash = deployedLog.blockHash;
-        this.lastRetrievedBlockNumber = deployedLog.blockNumber;
+        this.lastRetrievedBlockNumber = startingBlockNumber;
+        this.startingBlockNumber = startingBlockNumber;
         this.pollIntervalMilliSeconds = pollIntervalMilliSeconds;
         this.deploymentLogRangeCheck = deploymentLogRangeCheck;
         this.topics = Collections.unmodifiableSet(topics);
@@ -47,35 +45,34 @@ public class EventListener implements Runnable {
     public void run() {
         while (!shutdown) {
             try {
-                logger.debug("Polling from " + lastRetrievedBlockNumber);
+                logger.info("Polling from " + lastRetrievedBlockNumber);
                 List<Log> logs = nodeConnection.getLogs(lastRetrievedBlockNumber, "latest", topics);
 
                 List<Log> sortedLogs = sortLogs(logs);
 
-                // there must be at least one log present, otherwise the chain has re-orged
-                // validate the first log is what we expect
-
-                if (sortedLogs.size() == 0 || !Arrays.equals(sortedLogs.get(0).blockHash, lastRetrievedBlockHash)) {
-                    logger.debug("Chain has reorganized. Finding the last common log..");
-                    sortedLogs = findCommonBlock();
-                }
-
-                Log lastEvent = sortedLogs.get(sortedLogs.size() - 1);
-
-                // only remove the logs if they have been seen before, i.e the deployment event has not reorganized
-                if (this.lastRetrievedBlockHash != null) {
-                    BigInteger alreadySubmittedBlockNumber = sortedLogs.get(0).blockNumber;
-                    sortedLogs.removeIf(l -> (l.blockNumber.equals(alreadySubmittedBlockNumber)));
-                }
-
-                lastRetrievedBlockHash = lastEvent.blockHash;
-                lastRetrievedBlockNumber = lastEvent.blockNumber;
-
                 if (sortedLogs.size() > 0) {
-                    logger.debug("Found " + sortedLogs.size() + " new logs.");
-                    statePopulator.populate(sortedLogs);
+                    if (this.lastRetrievedBlockHash != null) {
+                        if (!Arrays.equals(sortedLogs.get(0).blockHash, lastRetrievedBlockHash)) {
+                            logger.info("BlockHash is not equal to the last retrieved log's block hash. Finding the last common log..");
+                            findCommonBlock();
+                        } else {
+                            BigInteger alreadySubmittedBlockNumber = sortedLogs.get(0).blockNumber;
+                            sortedLogs.removeIf(l -> (l.blockNumber.equals(alreadySubmittedBlockNumber)));
+                            if (sortedLogs.size() > 0) {
+                                setStateBasedOnLogs(sortedLogs);
+                            }
+                        }
+                    } else {
+                        setStateBasedOnLogs(sortedLogs);
+                    }
+                } else {
+                    logger.info("Could not find any contract logs. Finding the last common log..");
+                    findCommonBlock();
                 }
-                Thread.sleep(pollIntervalMilliSeconds);
+
+                if (!shutdown) {
+                    Thread.sleep(pollIntervalMilliSeconds);
+                }
 
             } catch (Throwable e) {
                 throw new CriticalException(e.getMessage());
@@ -89,7 +86,7 @@ public class EventListener implements Runnable {
         return sortedLog;
     }
 
-    private List<Log> findCommonBlock() throws DecoderException, InterruptedException {
+    private void findCommonBlock() throws InterruptedException {
         boolean foundCommon = false;
         BlockTuple blockTuple;
         List<Log> sortedLogs = null;
@@ -107,8 +104,13 @@ public class EventListener implements Runnable {
             if (logs.size() > 0) {
                 sortedLogs = sortLogs(logs);
                 if (Arrays.equals(sortedLogs.get(0).blockHash, blockTuple.getBlockHash())) {
-                    logger.debug("Found common log at block number " + sortedLogs.get(0).blockNumber);
+                    this.lastRetrievedBlockNumber = sortedLogs.get(0).blockNumber;
+                    this.lastRetrievedBlockHash = sortedLogs.get(0).blockHash;
+
+                    statePopulator.revertBlocks(count);
+
                     foundCommon = true;
+                    logger.info("Found common log at block number " + this.lastRetrievedBlockNumber);
                 }
             }
             // if all logs have changed, will break out of the while loop when it reaches the first block
@@ -118,24 +120,23 @@ public class EventListener implements Runnable {
         if (!foundCommon) {
             statePopulator.clear();
 
-            logger.debug("Fetching the deployment log..");
-            List<Log> newDeploymentLog = nodeConnection.getLogs(deployedLog.blockNumber.subtract(deploymentLogRangeCheck),
+            logger.info("Fetching the deployment log..");
+            List<Log> newDeploymentLog = nodeConnection.getLogs(startingBlockNumber.subtract(deploymentLogRangeCheck),
                     "latest",
                     new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())));
             Assertion.assertTrue(newDeploymentLog.size() == 1);
 
-            deployedLog = newDeploymentLog.get(0);
             this.lastRetrievedBlockHash = null;
-            this.lastRetrievedBlockNumber = null;
-
-            // get logs from deployment log block number
-            sortedLogs = sortLogs(nodeConnection.getLogs(deployedLog.blockNumber, "latest", topics));
-        } else {
-            // a common event was found
-            statePopulator.revertBlocks(count);
+            this.lastRetrievedBlockNumber = newDeploymentLog.get(0).blockNumber;
         }
+    }
 
-        return sortedLogs;
+    private void setStateBasedOnLogs(List<Log> sortedLogs) {
+        logger.info("Found " + sortedLogs.size() + " new logs.");
+        Log lastEvent = sortedLogs.get(sortedLogs.size() - 1);
+        lastRetrievedBlockHash = lastEvent.blockHash;
+        lastRetrievedBlockNumber = lastEvent.blockNumber;
+        statePopulator.populate(sortedLogs);
     }
 
     public void shutdown() {

@@ -92,7 +92,7 @@ public class RESTInteractionTest {
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
-                deployLog,
+                deployLog.blockNumber,
                 pollingIntervalMillis,
                 BigInteger.valueOf(5),
                 topics);

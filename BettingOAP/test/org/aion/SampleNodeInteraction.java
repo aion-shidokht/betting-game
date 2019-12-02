@@ -54,7 +54,7 @@ public class SampleNodeInteraction {
     private static EventListener eventListener;
     private static BigInteger ownerNonce;
     private static BigInteger playerNonce;
-    private static Log deployLog;
+    private static BigInteger startingBlock;
 
     private Thread transactionSenderThread;
     private Thread receiptCollectorThread;
@@ -104,7 +104,7 @@ public class SampleNodeInteraction {
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
-                deployLog,
+                startingBlock,
                 pollingIntervalMilliSeconds,
                 BigInteger.TEN,
                 TestingHelper.getContractTopics());
@@ -237,15 +237,7 @@ public class SampleNodeInteraction {
             TransactionReceipt receipt = sendTransaction(tx);
             contract = receipt.getAddressOfDeployedContract().orElseThrow();
             System.out.println("Contract deployed to " + contract);
-
-            deployLog = new Log(new types.Address(contract.getAddressBytes()),
-                    Helper.hexStringToBytes("42657474696e67436f6e74726163744465706c6f796564"),
-                    new ArrayList<>(),
-                    receipt.getBlockNumber(),
-                    0,
-                    0,
-                    receipt.getBlockHash(),
-                    receipt.getTransactionHash());
+            startingBlock = receipt.getBlockNumber();
 
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | InvalidKeyException | SignatureException | IOException | InterruptedException e) {
             e.printStackTrace();
