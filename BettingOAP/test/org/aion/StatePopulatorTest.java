@@ -13,7 +13,6 @@ import util.Log;
 import util.NodeConnection;
 import worker.EventListener;
 
-import java.math.BigInteger;
 import java.util.*;
 
 import static org.aion.TestingHelper.*;
@@ -28,14 +27,14 @@ public class StatePopulatorTest {
     private static byte[] sampleHash = new byte[32];
     private static Address sampleAddress = new Address(new byte[32]);
     private Thread eventListenerThread;
-    private BigInteger blockNumber = BigInteger.valueOf(100);
+    private long blockNumber = 100;
     private ProjectedState projectedState;
     Set<byte[]> topics = TestingHelper.getContractTopics();
 
     @Before
     public void setup() {
         deployLog = TestingHelper.getOneTopicEvent(sampleAddress,
-                BigInteger.TEN,
+                10,
                 "BettingContractDeployed",
                 0,
                 sampleHash);
@@ -47,7 +46,7 @@ public class StatePopulatorTest {
                 statePopulator,
                 deployLog.blockNumber,
                 pollingIntervalMillis,
-                BigInteger.ONE,
+                1,
                 topics,
                 sampleAddress);
 
@@ -105,7 +104,7 @@ public class StatePopulatorTest {
         Address player = new Address(getRandomAddressBytes());
         Log log1 = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
 
-        Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, statement.getBytes(), answerHash, 0, null);
+        Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber + 1, player, statementId, statement.getBytes(), answerHash, 0, null);
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2)));
         when(nodeConnection.getLogs(log2.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log2)));
 
@@ -135,9 +134,9 @@ public class StatePopulatorTest {
         Address player = new Address(getRandomAddressBytes());
         Log log1 = getRegisteredLog(sampleAddress, blockNumber, player, 0, null);
 
-        Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, "Q".getBytes(), getRandomAddressBytes(), 0, log1.blockHash);
+        Log log2 = getSubmittedStatementLog(sampleAddress, blockNumber + 1, player, statementId, "Q".getBytes(), getRandomAddressBytes(), 0, log1.blockHash);
 
-        Log log3 = getVotedLog(sampleAddress, blockNumber.add(BigInteger.ONE), player, statementId, answer.getBytes(), 0, log1.blockHash);
+        Log log3 = getVotedLog(sampleAddress, blockNumber+ 1, player, statementId, answer.getBytes(), 0, log1.blockHash);
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log1, log2, log3)));
         when(nodeConnection.getLogs(log1.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log1, log2, log3)));
@@ -210,11 +209,11 @@ public class StatePopulatorTest {
         for (int i = 0; i < player.length; i++) {
             player[i] = new Address(getRandomAddressBytes());
             registerLogs[i] = getRegisteredLog(deployLog.address, blockNumber, player[i], i + 1, deployLog.blockHash);
-            voteLogs[i] = getVotedLog(deployLog.address, blockNumber.add(BigInteger.ONE), player[i], statementId, answer.getBytes(), i + 1, sampleHash);
+            voteLogs[i] = getVotedLog(deployLog.address, blockNumber + 1, player[i], statementId, answer.getBytes(), i + 1, sampleHash);
         }
 
-        Log submittedLog = getSubmittedStatementLog(sampleAddress, blockNumber.add(BigInteger.ONE), player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), 0, sampleHash);
-        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, blockNumber.add(BigInteger.ONE), statementId, answer.getBytes(), 10, sampleHash);
+        Log submittedLog = getSubmittedStatementLog(sampleAddress, blockNumber + 1, player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), 0, sampleHash);
+        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, blockNumber + 1, statementId, answer.getBytes(), 10, sampleHash);
 
         List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog));
         logs1.addAll(Arrays.asList(registerLogs));
@@ -228,7 +227,7 @@ public class StatePopulatorTest {
         logs2.addAll(Arrays.asList(revealedAnswerLog));
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(logs1);
-        when(nodeConnection.getLogs(blockNumber.add(BigInteger.ONE), "latest", topics, sampleAddress)).thenReturn(logs2);
+        when(nodeConnection.getLogs(blockNumber + 1, "latest", topics, sampleAddress)).thenReturn(logs2);
 
         startThreads();
 

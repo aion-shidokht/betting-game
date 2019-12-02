@@ -38,4 +38,10 @@ public class Helper {
     public static int byteArrayToInteger(byte[] bytes) {
         return new BigInteger(Helper.bytesToHexString(bytes), 16).intValue();
     }
+
+    public static long hexStringToLong(String s) {
+        return s.startsWith("0x")
+                ? Long.parseLong(s.substring(2), 16)
+                : Long.parseLong(s, 16);
+    }
 }

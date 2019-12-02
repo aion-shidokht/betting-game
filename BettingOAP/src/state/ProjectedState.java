@@ -40,7 +40,7 @@ public class ProjectedState {
 
     public void addBlockTuple(BlockTuple blockTuple) {
         if (blocks.size() > 0) {
-            Assertion.assertTrue(blocks.getLast().getBlockNumber().compareTo(blockTuple.getBlockNumber()) < 0);
+            Assertion.assertTrue(blocks.getLast().getBlockNumber() < blockTuple.getBlockNumber());
         }
         blocks.add(blockTuple);
     }

@@ -2,7 +2,6 @@ package util;
 
 import org.aion.harness.kernel.Address;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,14 +10,14 @@ public class Log {
     public final Address address;
     private final byte[] data;
     private final List<byte[]> topics;
-    public final BigInteger blockNumber;
+    public final long blockNumber;
     public final byte[] blockHash;
     public final int transactionIndex;
     public final int logIndex;
     public final byte[] transactionHash;
 
     public Log(Address address, byte[] data, List<byte[]> topics,
-               BigInteger blockNumber, int transactionIndex, int logIndex, byte[] blockHash, byte[] transactionHash) {
+               long blockNumber, int transactionIndex, int logIndex, byte[] blockHash, byte[] transactionHash) {
         this.address = address;
         this.data = Arrays.copyOf(data, data.length);
         this.topics = copyOfBytesList(topics);

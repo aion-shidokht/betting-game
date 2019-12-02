@@ -1,7 +1,5 @@
 package org.aion;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
@@ -20,7 +18,6 @@ import server.SimpleHttpServer;
 import state.ProjectedState;
 import state.StatePopulator;
 import state.UserState;
-import types.AggregatedStatement;
 import util.*;
 import worker.BlockNumberCollector;
 import worker.EventListener;
@@ -79,7 +76,7 @@ public class RESTInteractionTest {
         when(nodeConnection.blockNumber()).thenAnswer(getNextBlock);
 
         deployLog = TestingHelper.getOneTopicEvent(contractAddress,
-                BigInteger.TEN,
+                10,
                 "BettingContractDeployed",
                 0,
                 hash);
@@ -95,7 +92,7 @@ public class RESTInteractionTest {
                 statePopulator,
                 deployLog.blockNumber,
                 pollingIntervalMillis,
-                BigInteger.valueOf(5),
+                5,
                 topics,
                 contractAddress);
 
@@ -156,7 +153,7 @@ public class RESTInteractionTest {
 
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         int size = 5;
         Log[] submitLogs = new Log[size];
         for (int i = 0; i < size; i++) {
@@ -215,7 +212,7 @@ public class RESTInteractionTest {
 
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         int size = 5;
         Log[] submitLogs = new Log[size];
         Log[] voteLogs = new Log[size];
@@ -261,7 +258,7 @@ public class RESTInteractionTest {
 
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         int size = 5;
         Log[] submitLogs = new Log[size];
         Log[] voteLogs = new Log[size];
@@ -365,7 +362,7 @@ public class RESTInteractionTest {
 
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         int size = 5;
         Log[] submitLogs = new Log[size];
         Log[] voteLogs = new Log[size];
@@ -424,7 +421,7 @@ public class RESTInteractionTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player1, 0, hash);
         Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player2, 0, hash);
 
@@ -458,7 +455,7 @@ public class RESTInteractionTest {
 
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;
         int size = 5;
         Log[] logs = new Log[size * 2];
 
@@ -508,7 +505,7 @@ public class RESTInteractionTest {
         WebTarget target1 = c1.target(URI);
         Address player = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = deployLog.blockNumber.add(BigInteger.ONE);
+        long blockNumber = deployLog.blockNumber + 1;
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player, 0, null);
         Log gameStoppedLog = getOneTopicEvent(player, blockNumber, "GameStopped", 0, registerLog.blockHash);
         Log distributedPrizeLog = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0,  registerLog.blockHash);

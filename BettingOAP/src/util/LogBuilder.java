@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.main.tools.JsonStringParser;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -16,7 +15,7 @@ public class LogBuilder {
     private Address address = null;
     private byte[] data = null;
     private List<byte[]> topics = null;
-    private BigInteger blockNumber = null;
+    private long blockNumber = 0;
     private byte[] blockHash = null;
     private Integer transactionIndex = null;
     private Integer logIndex = null;
@@ -37,7 +36,7 @@ public class LogBuilder {
         return this;
     }
 
-    public LogBuilder blockNumber(BigInteger blockNumber) {
+    public LogBuilder blockNumber(long blockNumber) {
         this.blockNumber = blockNumber;
         return this;
     }
@@ -69,7 +68,7 @@ public class LogBuilder {
         if (this.data == null) {
             throw new NullPointerException("Cannot build Log with null data!");
         }
-        if (this.blockNumber == null) {
+        if (this.blockNumber == 0) {
             throw new NullPointerException("Cannot build Log without specifying blockNumber!");
         }
         if (this.transactionIndex == null) {
@@ -100,7 +99,7 @@ public class LogBuilder {
                 .address(new Address(Helper.hexStringToBytes(address)))
                 .data(parseData(data))
                 .topics(parseJsonTopics(topics))
-                .blockNumber(new BigInteger(blockNumber, 16))
+                .blockNumber(Helper.hexStringToLong(blockNumber))
                 .transactionIndex(Integer.parseInt(transactionIndex, 16))
                 .logIndex(Integer.parseInt(logIndex, 16))
                 .blockHash(Helper.hexStringToBytes(blockHash))
@@ -139,15 +138,5 @@ public class LogBuilder {
     private static String stripQuotesAndHexSignifier(String string) {
         String stripStart = string.substring(3);
         return stripStart.substring(0, stripStart.length() - 1);
-    }
-
-    public void clear() {
-        this.address = null;
-        this.data = null;
-        this.topics = null;
-        this.blockNumber = null;
-        this.transactionIndex = null;
-        this.logIndex = null;
-        this.transactionHash = null;
     }
 }

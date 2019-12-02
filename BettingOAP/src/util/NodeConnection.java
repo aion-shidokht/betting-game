@@ -88,7 +88,7 @@ public class NodeConnection {
         }
     }
 
-    public List<Log> getLogs(BigInteger fromBlock, String toBlock, Set<byte[]> filterTopics, Address contractAddress) throws InterruptedException {
+    public List<Log> getLogs(long fromBlock, String toBlock, Set<byte[]> filterTopics, Address contractAddress) throws InterruptedException {
         String payload = getLogsPayload(fromBlock, toBlock, filterTopics);
         InternalRpcResult internalResult = rpc.call(payload, false);
         ArrayList<Log> logArray = new ArrayList<>();
@@ -132,7 +132,7 @@ public class NodeConnection {
         }
     }
 
-    private String getLogsPayload(BigInteger fromBlock, String toBlock, Set<byte[]> topics) {
+    private String getLogsPayload(long fromBlock, String toBlock, Set<byte[]> topics) {
         String payloadStart = "{\"jsonrpc\":\"2.0\",\"method\":\"";
         String methodName = "eth_getLogs";
         String paramsStart = "\",\"params\":[{";

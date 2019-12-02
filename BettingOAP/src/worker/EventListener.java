@@ -10,7 +10,6 @@ import types.BlockTuple;
 import util.Log;
 import util.NodeConnection;
 
-import java.math.BigInteger;
 import java.util.*;
 
 public class EventListener implements Runnable {
@@ -18,20 +17,20 @@ public class EventListener implements Runnable {
     private NodeConnection nodeConnection;
     private final long pollIntervalMilliSeconds;
     private final Logger logger = LoggerFactory.getLogger("EventListener");
-    private BigInteger lastRetrievedBlockNumber;
-    private BigInteger startingBlockNumber;
+    private long lastRetrievedBlockNumber;
+    private long startingBlockNumber;
     private byte[] lastRetrievedBlockHash;
     private StatePopulator statePopulator;
     private volatile boolean shutdown = false;
-    private final BigInteger deploymentLogRangeCheck;
+    private final long deploymentLogRangeCheck;
     private final Set<byte[]> topics;
     private final Address contractAddress;
 
     public EventListener(NodeConnection nodeConnection,
                          StatePopulator statePopulator,
-                         BigInteger startingBlockNumber,
+                         long startingBlockNumber,
                          long pollIntervalMilliSeconds,
-                         BigInteger deploymentLogRangeCheck,
+                         long deploymentLogRangeCheck,
                          Set<byte[]> topics,
                          Address contractAddress) {
         this.nodeConnection = nodeConnection;
@@ -59,8 +58,8 @@ public class EventListener implements Runnable {
                             logger.info("BlockHash is not equal to the last retrieved log's block hash. Finding the last common log..");
                             findCommonBlock();
                         } else {
-                            BigInteger alreadySubmittedBlockNumber = sortedLogs.get(0).blockNumber;
-                            sortedLogs.removeIf(l -> (l.blockNumber.equals(alreadySubmittedBlockNumber)));
+                            long alreadySubmittedBlockNumber = sortedLogs.get(0).blockNumber;
+                            sortedLogs.removeIf(l -> (l.blockNumber == alreadySubmittedBlockNumber));
                             if (sortedLogs.size() > 0) {
                                 setStateBasedOnLogs(sortedLogs);
                             }
@@ -122,9 +121,9 @@ public class EventListener implements Runnable {
         // Could not find a common log. Find the original deployment log and start from there
         if (!foundCommon) {
             statePopulator.clear();
-
+            
             logger.info("Fetching the deployment log..");
-            List<Log> newDeploymentLog = nodeConnection.getLogs(startingBlockNumber.subtract(deploymentLogRangeCheck),
+            List<Log> newDeploymentLog = nodeConnection.getLogs(startingBlockNumber - deploymentLogRangeCheck,
                     "latest",
                     new HashSet<>(Collections.singleton("BettingContractDeployed".getBytes())),
                     contractAddress);

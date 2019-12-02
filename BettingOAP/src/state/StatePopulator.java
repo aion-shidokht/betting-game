@@ -7,7 +7,6 @@ import types.Statement;
 import types.Vote;
 import types.Player;
 import internal.CriticalException;
-import types.BlockTuple;
 import util.Log;
 
 import java.math.BigInteger;
@@ -23,8 +22,8 @@ public class StatePopulator {
     }
 
     public void populate(List<Log> logs) {
-        Map<BigInteger, List<Log>> logsPerBlock = new TreeMap<>(logs.stream().collect(groupingBy(l -> l.blockNumber)));
-        for (Map.Entry<BigInteger, List<Log>> e : logsPerBlock.entrySet()) {
+        Map<Long, List<Log>> logsPerBlock = new TreeMap<>(logs.stream().collect(groupingBy(l -> l.blockNumber)));
+        for (Map.Entry<Long, List<Log>> e : logsPerBlock.entrySet()) {
             List<Integer> ids = new ArrayList<>();
             byte[] blockHash = e.getValue().get(0).blockHash;
             for (Log log : e.getValue()) {

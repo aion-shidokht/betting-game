@@ -14,7 +14,7 @@ public class TestingHelper {
     private static SecureRandom secureRandom = new SecureRandom();
 
     static Log getRegisteredLog(Address contractAddress,
-                                BigInteger blockNumber,
+                                long blockNumber,
                                 Address player,
                                 int transactionIndex,
                                 byte[] blockHash) {
@@ -29,7 +29,7 @@ public class TestingHelper {
     }
 
     static Log getVotedLog(Address contractAddress,
-                           BigInteger blockNumber,
+                           long blockNumber,
                            Address player,
                            int statementId,
                            byte[] answer,
@@ -48,7 +48,7 @@ public class TestingHelper {
     }
 
     static Log getSubmittedStatementLog(Address contractAddress,
-                                        BigInteger blockNumber,
+                                        long blockNumber,
                                         Address player,
                                         int statementId,
                                         byte[] statement,
@@ -69,7 +69,7 @@ public class TestingHelper {
     }
 
     static Log getRevealedAnswerLog(Address contractAddress,
-                                    BigInteger blockNumber,
+                                    long blockNumber,
                                     int statementId,
                                     byte[] answer,
                                     int transactionIndex,
@@ -86,7 +86,7 @@ public class TestingHelper {
     }
 
     static Log getOneTopicEvent(Address contractAddress,
-                                BigInteger blockNumber,
+                                long blockNumber,
                                 String topic,
                                 int transactionIndex,
                                 byte[] blockHash) {

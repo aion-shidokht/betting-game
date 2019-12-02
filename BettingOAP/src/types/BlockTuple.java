@@ -2,27 +2,26 @@ package types;
 
 import util.Helper;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class BlockTuple {
-    private BigInteger blockNumber;
+    private long blockNumber;
     private byte[] blockHash;
     private List<Integer> logIds;
 
-    private BlockTuple(BigInteger blockNumber, byte[] blockHash, List<Integer> logIds) {
+    private BlockTuple(long blockNumber, byte[] blockHash, List<Integer> logIds) {
         this.blockNumber = blockNumber;
         this.blockHash = blockHash;
         this.logIds = logIds;
     }
 
-   public static BlockTuple of(BigInteger blockNumber, byte[] blockHash, List<Integer> logIds) {
+   public static BlockTuple of(long blockNumber, byte[] blockHash, List<Integer> logIds) {
         return new BlockTuple(blockNumber, blockHash, logIds);
    }
 
-    public BigInteger getBlockNumber() {
+    public long getBlockNumber() {
         return blockNumber;
     }
 
@@ -48,7 +47,7 @@ public class BlockTuple {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BlockTuple that = (BlockTuple) o;
-        return blockNumber.equals(that.blockNumber) &&
+        return blockNumber == that.blockNumber &&
                 Arrays.equals(blockHash, that.blockHash) &&
                 logIds.equals(that.logIds);
     }

@@ -11,7 +11,6 @@ import util.Log;
 import util.NodeConnection;
 import worker.EventListener;
 
-import java.math.BigInteger;
 import java.util.*;
 
 import static org.aion.TestingHelper.*;
@@ -33,7 +32,7 @@ public class EventListenerTest {
     @Before
     public void setup() {
         deployLog = TestingHelper.getOneTopicEvent(contractAddress,
-                BigInteger.TEN,
+                10,
                 "BettingContractDeployed",
                 0,
                 Hash);
@@ -46,7 +45,7 @@ public class EventListenerTest {
                 statePopulator,
                 deployLog.blockNumber,
                 pollingIntervalMillis,
-                BigInteger.valueOf(5),
+                5,
                 topics,
                 contractAddress);
 
@@ -67,10 +66,10 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;;
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
@@ -78,7 +77,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog, submitLog, registerLog2)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics, contractAddress))
+        when(nodeConnection.getLogs(102, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -86,7 +85,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(4, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(102), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(102, projectedState.getBlocks().getLast().getBlockNumber());
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
@@ -101,10 +100,10 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        BigInteger blockNumber = BigInteger.valueOf(100);
+        long blockNumber = 100;;
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(deployLog, registerLog)));
@@ -112,7 +111,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2, registerLog, submitLog)));
 
-        when(nodeConnection.getLogs(BigInteger.valueOf(102), "latest", topics, contractAddress))
+        when(nodeConnection.getLogs(102, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         startThreads();
@@ -120,7 +119,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(4, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(102), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(102, projectedState.getBlocks().getLast().getBlockNumber());
 
         int expectedId = 1;
         Assert.assertEquals(2, projectedState.getPlayers().size());
@@ -135,10 +134,10 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player2, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player2, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -152,7 +151,7 @@ public class EventListenerTest {
                 .thenReturn(new ArrayList<>(Arrays.asList(registerLog2)));
 
         // chain reorgs
-        when(nodeConnection.getLogs(BigInteger.valueOf(110), "latest", topics, contractAddress))
+        when(nodeConnection.getLogs(110, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
         startThreads();
@@ -160,7 +159,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(4, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(102), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(102, projectedState.getBlocks().getLast().getBlockNumber());
 
         Assert.assertEquals(1, projectedState.getStatements().size());
         Assert.assertEquals(0, projectedState.getVotes().size());
@@ -172,12 +171,12 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player2, 1, "A".getBytes(), 0, null);
-        Log newVoteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(109), player2, 1, "A".getBytes(), 0, null);
-        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player2, 1, "A".getBytes(), 0, null);
+        Log newVoteLog = TestingHelper.getVotedLog(deployLog.address, 109, player2, 1, "A".getBytes(), 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -199,7 +198,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(6, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(110), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(110, projectedState.getBlocks().getLast().getBlockNumber());
 
         int expectedId = 2;
         Assert.assertEquals(2, projectedState.getPlayers().size());
@@ -216,17 +215,17 @@ public class EventListenerTest {
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
-        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(80), player1, 0, null);
-        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(91), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 0, null);
-        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, 80, player1, 0, null);
+        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, 91, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, 102, player2Replacement, 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, 102, player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
 
-        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, 123, player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -252,7 +251,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(5, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(123, projectedState.getBlocks().getLast().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
         Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
@@ -268,20 +267,20 @@ public class EventListenerTest {
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
-        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(80), player1, 0, null);
-        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(91), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 0, null);
-        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, 80, player1, 0, null);
+        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, 91, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, 102, player2Replacement, 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, 102, player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
 
-        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, 123, player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(20), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, 20, "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -302,7 +301,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(Set.class), eq(contractAddress)))
+        when(nodeConnection.getLogs(eq(Long.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
@@ -313,7 +312,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(5, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(123, projectedState.getBlocks().getLast().getBlockNumber());
         Assert.assertEquals(newDeployLog.blockNumber, projectedState.getBlocks().getFirst().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
@@ -330,22 +329,22 @@ public class EventListenerTest {
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
-        Log answerLog = TestingHelper.getRevealedAnswerLog(deployLog.address, BigInteger.valueOf(110), 1, "A".getBytes(), 1, voteLog.blockHash);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
+        Log answerLog = TestingHelper.getRevealedAnswerLog(deployLog.address, 110, 1, "A".getBytes(), 1, voteLog.blockHash);
 
-        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(80), player1, 0, null);
-        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(91), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 0, null);
-        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
-        Log answerLogReplacement = TestingHelper.getRevealedAnswerLog(deployLog.address, BigInteger.valueOf(102), 1, "A".getBytes(), 1, voteLog.blockHash);
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, 80, player1, 0, null);
+        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, 91, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, 102, player2Replacement, 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, 102, player2Replacement, 1, "A".getBytes(), 0, registerLog2Replacement.blockHash);
+        Log answerLogReplacement = TestingHelper.getRevealedAnswerLog(deployLog.address, 102, 1, "A".getBytes(), 1, voteLog.blockHash);
 
-        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, 123, player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, 5, "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -366,7 +365,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(submitLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>(Arrays.asList(submitLog2)));
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
+        when(nodeConnection.getLogs(eq(Long.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
@@ -377,7 +376,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(5, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(123, projectedState.getBlocks().getLast().getBlockNumber());
         Assert.assertEquals(newDeployLog.blockNumber, projectedState.getBlocks().getFirst().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
@@ -398,13 +397,13 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(15), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, 15, "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -422,7 +421,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
+        when(nodeConnection.getLogs(eq(Long.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
@@ -445,13 +444,13 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, 5, "BettingContractDeployed", 0, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -469,7 +468,7 @@ public class EventListenerTest {
         when(nodeConnection.getLogs(voteLog.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
 
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
+        when(nodeConnection.getLogs(eq(Long.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
 
         when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
@@ -493,17 +492,17 @@ public class EventListenerTest {
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2Replacement = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
-        Log voteLog = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(110), player1, 1, "A".getBytes(), 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
+        Log voteLog = TestingHelper.getVotedLog(deployLog.address, 110, player1, 1, "A".getBytes(), 0, null);
 
-        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(91), player1, 0, null);
-        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(91), player1, 1, "Q".getBytes(), "H".getBytes(), 1, null);
-        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 0, null);
-        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, BigInteger.valueOf(102), player2Replacement, 1, "A".getBytes(), 2, registerLog2Replacement.blockHash);
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, 91, player1, 0, null);
+        Log submitLogReplacement = TestingHelper.getSubmittedStatementLog(deployLog.address, 91, player1, 1, "Q".getBytes(), "H".getBytes(), 1, null);
+        Log registerLog2Replacement = TestingHelper.getRegisteredLog(deployLog.address, 102, player2Replacement, 0, null);
+        Log voteLogReplacement = TestingHelper.getVotedLog(deployLog.address, 102, player2Replacement, 1, "A".getBytes(), 2, registerLog2Replacement.blockHash);
 
-        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, BigInteger.valueOf(123), player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log submitLog2 = TestingHelper.getSubmittedStatementLog(player1, 123, player2Replacement, 2, "Q".getBytes(), "H".getBytes(), 0, null);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -529,7 +528,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(4, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(123), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(123, projectedState.getBlocks().getLast().getBlockNumber());
 
         Assert.assertEquals(2, projectedState.getPlayers().size());
         Assert.assertTrue(containsPlayer(projectedState.getPlayers(), player1));
@@ -544,13 +543,13 @@ public class EventListenerTest {
         Address player1 = new Address(TestingHelper.getRandomAddressBytes());
         Address player2 = new Address(TestingHelper.getRandomAddressBytes());
 
-        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(100), player1, 0, null);
-        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, BigInteger.valueOf(101), player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
-        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(102), player2, 0, null);
+        Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, 100, player1, 0, null);
+        Log submitLog = TestingHelper.getSubmittedStatementLog(deployLog.address, 101, player1, 1, "Q".getBytes(), "H".getBytes(), 0, null);
+        Log registerLog2 = TestingHelper.getRegisteredLog(deployLog.address, 102, player2, 0, null);
 
         byte[] newDeployBlockHash = TestingHelper.getRandomAddressBytes();
-        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, BigInteger.valueOf(5), "BettingContractDeployed", 0, newDeployBlockHash);
-        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, BigInteger.valueOf(5), player1, 1, newDeployBlockHash);
+        Log newDeployLog = TestingHelper.getOneTopicEvent(deployLog.address, 5, "BettingContractDeployed", 0, newDeployBlockHash);
+        Log registerLogReplacement = TestingHelper.getRegisteredLog(deployLog.address, 5, player1, 1, newDeployBlockHash);
 
         // 10 -> 100
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress))
@@ -563,7 +562,7 @@ public class EventListenerTest {
         // 102 -> 110
         when(nodeConnection.getLogs(registerLog2.blockNumber, "latest", topics, contractAddress))
                 .thenReturn(new ArrayList<>());
-        when(nodeConnection.getLogs(eq(BigInteger.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
+        when(nodeConnection.getLogs(eq(Long.valueOf(5)), eq("latest"), any(HashSet.class), eq(contractAddress)))
                 .thenReturn(new ArrayList<>(Arrays.asList(newDeployLog)));
         // chain reorgs
         when(nodeConnection.getLogs(newDeployLog.blockNumber, "latest", topics, contractAddress))
@@ -574,7 +573,7 @@ public class EventListenerTest {
         shutdownThreads();
 
         Assert.assertEquals(1, projectedState.getBlocks().size());
-        Assert.assertEquals(BigInteger.valueOf(5), projectedState.getBlocks().getLast().getBlockNumber());
+        Assert.assertEquals(5, projectedState.getBlocks().getLast().getBlockNumber());
         Assert.assertEquals(1, projectedState.getPlayers().size());
         Assert.assertEquals(0, projectedState.getStatements().size());
         Assert.assertEquals(0, projectedState.getVotes().size());
@@ -592,18 +591,18 @@ public class EventListenerTest {
 
         for (int i = 0; i < player.length; i++) {
             player[i] = new Address(getRandomAddressBytes());
-            registerLogs[i] = getRegisteredLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], i, sampleHash);
-            voteLogs[i] = getVotedLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], statementId, answer.getBytes(), i + player.length * 2, sampleHash);
-            voteLogs[i + player.length] = getVotedLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[i], statementId + 1, answer.getBytes(), i + player.length * 3, sampleHash);
+            registerLogs[i] = getRegisteredLog(deployLog.address, deployLog.blockNumber + 1, player[i], i, sampleHash);
+            voteLogs[i] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[i], statementId, answer.getBytes(), i + player.length * 2, sampleHash);
+            voteLogs[i + player.length] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[i], statementId + 1, answer.getBytes(), i + player.length * 3, sampleHash);
         }
 
-        Log submittedLog = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), player.length + 1, sampleHash);
-        Log submittedLog2 = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber.add(BigInteger.ONE), player[0], statementId + 1, "S0".getBytes(), getRandomAddressBytes(), player.length + 2, sampleHash);
+        Log submittedLog = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), player.length + 1, sampleHash);
+        Log submittedLog2 = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId + 1, "S0".getBytes(), getRandomAddressBytes(), player.length + 2, sampleHash);
 
         byte[] sampleHash2 = getRandomAddressBytes();
-        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId, answer.getBytes(), player.length * 5, sampleHash2);
-        Log revealedAnswerLog2 = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId + 1, answer.getBytes(), player.length * 5 + 10, sampleHash2);
-        Log revealedAnswerLogReplacement = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber.add(BigInteger.TWO), statementId + 1, answer.getBytes(), player.length * 5 + 10, getRandomAddressBytes());
+        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId, answer.getBytes(), player.length * 5, sampleHash2);
+        Log revealedAnswerLog2 = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId + 1, answer.getBytes(), player.length * 5 + 10, sampleHash2);
+        Log revealedAnswerLogReplacement = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId + 1, answer.getBytes(), player.length * 5 + 10, getRandomAddressBytes());
 
         List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog));
         logs1.addAll(Arrays.asList(registerLogs));
@@ -624,8 +623,8 @@ public class EventListenerTest {
         logs3.addAll(Arrays.asList(revealedAnswerLogReplacement));
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress)).thenReturn(logs1);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.ONE), "latest", topics, contractAddress)).thenReturn(logs2);
-        when(nodeConnection.getLogs(deployLog.blockNumber.add(BigInteger.TWO), "latest", topics, contractAddress))
+        when(nodeConnection.getLogs(deployLog.blockNumber + 1, "latest", topics, contractAddress)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber + 2, "latest", topics, contractAddress))
                 .thenReturn(Arrays.asList(revealedAnswerLog, revealedAnswerLog2))
                 .thenReturn(Arrays.asList(revealedAnswerLogReplacement));
 

@@ -14,7 +14,6 @@ import worker.ReceiptCollector;
 import worker.TransactionSender;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,7 +42,7 @@ public class BettingGame {
                        String port,
                        Address contractAddress,
                        int capacity,
-                       BigInteger startingBlockNumber,
+                       long startingBlockNumber,
                        long pollingIntervalMillis,
                        String serverHostName,
                        String serverPort) {
@@ -59,7 +58,7 @@ public class BettingGame {
 
         queuePopulator = new QueuePopulator(rawTransactions);
 
-        BigInteger range = BigInteger.valueOf(10);
+        long range = 10;
         eventListener = new EventListener(
                 nodeConnection,
                 statePopulator,
