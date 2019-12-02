@@ -1,5 +1,7 @@
 package org.aion;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
@@ -8,6 +10,7 @@ import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.RpcResult;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,6 +20,7 @@ import server.SimpleHttpServer;
 import state.ProjectedState;
 import state.StatePopulator;
 import state.UserState;
+import types.AggregatedStatement;
 import util.*;
 import worker.BlockNumberCollector;
 import worker.EventListener;
@@ -35,10 +39,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -162,15 +163,19 @@ public class RESTInteractionTest {
             submitLogs[i] = TestingHelper.getSubmittedStatementLog(deployLog.address, blockNumber, player1, i + 1, "Q".getBytes(), "H".getBytes(), i, hash);
         }
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player1, 0, hash);
+        Log answerLog1 = getRevealedAnswerLog(deployLog.address, blockNumber, 1, "A".getBytes(), size + 1, hash);
+        Log gameStoppedLog = getOneTopicEvent(player1, blockNumber, "GameStopped", 0, registerLog.blockHash);
 
         List<Log> logs1 = new ArrayList<>();
         logs1.add(deployLog);
         logs1.add(registerLog);
         logs1.addAll(Arrays.asList(submitLogs));
+        logs1.addAll(Set.of(gameStoppedLog, answerLog1));
 
         List<Log> logs2 = new ArrayList<>();
         logs2.add(registerLog);
         logs2.addAll(Arrays.asList(submitLogs));
+        logs2.addAll(Set.of(gameStoppedLog, answerLog1));
 
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress)).thenReturn(logs1);
         when(nodeConnection.getLogs(blockNumber, "latest", topics, contractAddress)).thenReturn(logs2);
@@ -178,14 +183,26 @@ public class RESTInteractionTest {
         startThreads();
 
         String response = getStatements(target1);
-        JSONObject obj = new JSONObject(response);
+        JSONArray obj = new JSONArray(response);
 
-        Assert.assertNotNull(obj);
-        Assert.assertNotNull(obj.getJSONObject("2"));
-        Assert.assertNotNull(obj.getJSONObject("3"));
-        Assert.assertNotNull(obj.getJSONObject("4"));
-        Assert.assertNotNull(obj.getJSONObject("5"));
-        Assert.assertNotNull(obj.getJSONObject("6"));
+        Assert.assertEquals(size, obj.length());
+        Iterator itr = obj.iterator();
+        int i = 1;
+        while(itr.hasNext()){
+            JSONObject next = (JSONObject) itr.next();
+            Assert.assertEquals(i, next.getInt("statementId"));
+            Assert.assertEquals("Q", next.getString("statementString"));
+            Assert.assertEquals("0x48", next.getString("answerHash"));
+            Assert.assertEquals("0x" + Helper.bytesToHexString(player1.getAddressBytes()),
+                    next.getJSONObject("playerAddress").getString("addressString"));
+            if(i == 1){
+                Assert.assertEquals("A", next.getString("answerString"));
+            } else {
+
+                Assert.assertEquals(JSONObject.NULL , next.get("answerString"));
+            }
+            i++;
+        }
 
         c1.close();
         shutdownThreads();

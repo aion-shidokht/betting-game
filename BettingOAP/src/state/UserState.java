@@ -67,8 +67,23 @@ public class UserState {
         return null;
     }
 
-    public Map<Integer, Statement> getStatements() {
-        return projectedState.getStatements();
+    // Note that following methods do not always return the most current state of the projected state.
+    // Once the maps are copied from the projected state, they are iterated over here. the state might have changed
+    // between 2 consecutive ConcurrentHashMap copies and the retrieval methods in this class should be able to handle that.
+    public List<AggregatedStatement> getStatements() {
+        Map<Integer, Statement> statements = projectedState.getStatements();
+        Map<Integer, Answer> answers = projectedState.getAnswers();
+        List<AggregatedStatement> response = new ArrayList<>();
+
+        for (Statement s : statements.values()) {
+            if (s.getAnswerEventId() > 0 && answers.containsKey(s.getAnswerEventId())) {
+                response.add(new AggregatedStatement(s, answers.get(s.getAnswerEventId())));
+            } else {
+                response.add(new AggregatedStatement(s, null));
+            }
+        }
+
+        return response;
     }
 
     public Map<Integer, Player> getPlayers() {

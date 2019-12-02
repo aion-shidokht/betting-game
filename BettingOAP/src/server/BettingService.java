@@ -27,7 +27,7 @@ public class BettingService {
     @GET
     @Path("/allStatements")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<Integer, Statement> getAllStatements() {
+    public List<AggregatedStatement> getAllStatements() {
         return userState.getStatements();
     }
 
