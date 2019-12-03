@@ -94,33 +94,33 @@ public class ProjectedState {
      * Game methods
      */
 
-    public int stopGame(byte[] transactionHash) {
+    public int stopGame(byte[] transactionHash, long blockNumber) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.setAsStopped(currentEventId, transactionHash);
+            currentGame.setAsStopped(currentEventId, transactionHash, blockNumber);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();
         }
     }
 
-    public int distributedPrize(byte[] transactionHash) {
+    public int distributedPrize(byte[] transactionHash, long blockNumber) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.setPrizeDistributed(currentEventId, transactionHash);
+            currentGame.setPrizeDistributed(currentEventId, transactionHash, blockNumber);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();
         }
     }
 
-    public int addTransferValue(BigInteger value, byte[] transactionHash) {
+    public int addTransferValue(BigInteger value, byte[] transactionHash, long blockNumber) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.addValueTransfer(currentEventId, value, transactionHash);
+            currentGame.addValueTransfer(currentEventId, value, transactionHash, blockNumber);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();

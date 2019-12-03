@@ -10,17 +10,20 @@ import java.util.Set;
 public class Player {
     private final Address playerAddress;
     private final String transactionHash;
+    private final long blockNumber;
     // this is used to calculated the score
     private final List<Integer> correctVoteAssociatedAnswerEventId;
 
-    public static Player from(byte[] data, byte[] transactionHash) {
+    public static Player from(byte[] data, byte[] transactionHash, long blockNumber) {
         return new Player(new Address(data),
-                Helper.bytesToHexStringWith0x(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash),
+                blockNumber);
     }
 
-    private Player(Address playerAddress, String transactionHash) {
+    private Player(Address playerAddress, String transactionHash, Long blockNumber) {
         this.playerAddress = playerAddress;
         this.transactionHash = transactionHash;
+        this.blockNumber = blockNumber;
         correctVoteAssociatedAnswerEventId = new ArrayList<>();
     }
 
@@ -45,9 +48,14 @@ public class Player {
         return correctVoteAssociatedAnswerEventId.size();
     }
 
+    public long getBlockNumber() {
+        return blockNumber;
+    }
+
     public Player(Player player){
         this.playerAddress = player.playerAddress;
         this.transactionHash= player.transactionHash;
+        this.blockNumber = player.blockNumber;
         this.correctVoteAssociatedAnswerEventId = player.correctVoteAssociatedAnswerEventId;
     }
 
@@ -56,6 +64,7 @@ public class Player {
         return "Player{" +
                 "playerAddress=" + playerAddress +
                 ", transactionHash='" + transactionHash + '\'' +
+                ", blockNumber=" + blockNumber +
                 ", correctVoteAssociatedAnswerEventId=" + correctVoteAssociatedAnswerEventId +
                 '}';
     }

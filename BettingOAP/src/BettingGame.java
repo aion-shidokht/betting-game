@@ -51,7 +51,6 @@ public class BettingGame {
 
         ProjectedState projectedState = new ProjectedState();
         StatePopulator statePopulator = new StatePopulator(projectedState);
-        userState = new UserState(projectedState, nodeConnection);
 
         LinkedBlockingDeque<byte[]> rawTransactions = new LinkedBlockingDeque<>(capacity);
         LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes = new LinkedBlockingDeque<>(capacity);
@@ -72,6 +71,8 @@ public class BettingGame {
                 nodeConnection,
                 pollingIntervalMillis,
                 3);
+
+        userState = new UserState(projectedState, nodeConnection, blockNumberCollector);
 
         transactionSender = new TransactionSender(
                 blockNumberCollector,

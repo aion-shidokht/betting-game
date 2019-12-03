@@ -16,49 +16,55 @@ public class Game {
     private Pair<Integer, Address[]> winners;
     private Map<Integer, BigInteger> transferredValues;
     private Map<Integer, String> transactionHashes;
+    private Map<Integer, Long> blockNumbers;
 
     public Game() {
         isStopped = Pair.of(-1, false);
         prizeDistributed = Pair.of(-1, false);
         transferredValues = new HashMap<>();
+        blockNumbers = new HashMap<>();
         winners = Pair.of(-1, null);
         transactionHashes = new HashMap<>();
+        blockNumbers = new HashMap<>();
     }
 
-    private Game(Pair<Integer, Boolean> isStopped, Pair<Integer, Boolean> prizeDistributed, Pair<Integer, Address[]> winners, Map<Integer, BigInteger> transferredValues, Map<Integer, String> transactionHashes) {
+    private Game(Pair<Integer, Boolean> isStopped, Pair<Integer, Boolean> prizeDistributed, Pair<Integer, Address[]> winners,
+                 Map<Integer, BigInteger> transferredValues, Map<Integer, String> transactionHashes, Map<Integer, Long> blockNumbers) {
         this.isStopped = isStopped;
         this.prizeDistributed = prizeDistributed;
         this.winners = winners;
         this.transferredValues = transferredValues;
         this.transactionHashes = transactionHashes;
+        this.blockNumbers = blockNumbers;
     }
 
-    public void setAsStopped(Integer id, byte[] transactionHash) {
+    public void setAsStopped(Integer id, byte[] transactionHash, long blockNumber) {
         this.isStopped = Pair.of(id, true);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
         transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
-
+        blockNumbers.put(id, blockNumber);
     }
 
-    public void setPrizeDistributed(Integer id, byte[] transactionHash) {
+    public void setPrizeDistributed(Integer id, byte[] transactionHash, long blockNumber) {
         this.prizeDistributed = Pair.of(id, true);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
         transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
-
+        blockNumbers.put(id, blockNumber);
     }
 
-    public void setWinners(Integer id, Address[] winners, byte[] transactionHash) {
+    public void setWinners(Integer id, Address[] winners, byte[] transactionHash, long blockNumber) {
         this.winners = Pair.of(id, winners);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
         transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
-
+        blockNumbers.put(id, blockNumber);
     }
 
-    public void addValueTransfer(Integer id, BigInteger value, byte[] transactionHash) {
+    public void addValueTransfer(Integer id, BigInteger value, byte[] transactionHash, long blockNumber) {
         Assertion.assertTrue(!transferredValues.containsKey(id));
         transferredValues.put(id, value);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
         transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
+        blockNumbers.put(id, blockNumber);
     }
 
     public boolean isStopped() {
@@ -78,16 +84,16 @@ public class Game {
     }
 
     @JsonIgnore
-    public Game getCopy(){
-        return new Game(isStopped, prizeDistributed, winners, transferredValues, transactionHashes);
+    public Game getCopy() {
+        return new Game(isStopped, prizeDistributed, winners, transferredValues, transactionHashes, blockNumbers);
     }
 
     public Map<Integer, String> getTransactionHashes() {
         return transactionHashes;
     }
 
-    public String getTransactionHash(int id) {
-        return transactionHashes.get(id);
+    public Map<Integer, Long> getBlockNumbers() {
+        return blockNumbers;
     }
 
     public void clear() {
@@ -132,6 +138,7 @@ public class Game {
                 ", winners=" + winners +
                 ", transferredValues=" + transferredValues +
                 ", transactionHashes=" + transactionHashes +
+                ", blockNumbers=" + blockNumbers +
                 '}';
     }
 }

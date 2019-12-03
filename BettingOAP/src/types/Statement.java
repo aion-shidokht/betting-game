@@ -13,27 +13,31 @@ public class Statement {
     private final String answerHash;
     private final String statement;
     private final String transactionHash;
+    private final long blockNumber;
+
     // internal ids associated with events.
     private final Set<Integer> voteEventIds;
     private int answerEventId;
 
-    private Statement(Address playerAddress, int statementId, String answerHash, String statement, String transactionHash) {
+    private Statement(Address playerAddress, int statementId, String answerHash, String statement, String transactionHash, long blockNumber) {
         this.playerAddress = playerAddress;
         this.statementId = statementId;
         this.answerHash = answerHash;
         this.statement = statement;
         this.transactionHash = transactionHash;
+        this.blockNumber = blockNumber;
         voteEventIds = new HashSet<>();
         answerEventId = -1;
     }
 
-    public static Statement from(List<byte[]> topics, byte[] data, byte[] transactionHash) {
+    public static Statement from(List<byte[]> topics, byte[] data, byte[] transactionHash, long blockNumber) {
         Assertion.assertTopicSize(topics, 4);
         return new Statement(new Address(topics.get(1)),
                 Helper.byteArrayToInteger(topics.get(2)),
                 Helper.bytesToHexStringWith0x(topics.get(3)),
                 new String(data),
-                Helper.bytesToHexStringWith0x(transactionHash));
+                Helper.bytesToHexStringWith0x(transactionHash),
+                blockNumber);
     }
 
     public Address getPlayerAddress() {
@@ -64,6 +68,7 @@ public class Statement {
         this.transactionHash = statement.transactionHash;
         this.answerEventId = statement.answerEventId;
         this.voteEventIds = statement.voteEventIds;
+        this.blockNumber = statement.blockNumber;
     }
 
     public Set<Integer> getVoteEventIds() {
@@ -90,14 +95,19 @@ public class Statement {
         this.answerEventId = -1;
     }
 
+    public long getBlockNumber() {
+        return blockNumber;
+    }
+
     @Override
     public String toString() {
         return "Statement{" +
                 "playerAddress=" + playerAddress +
                 ", statementId=" + statementId +
-                ", answerHash=" + answerHash +
+                ", answerHash='" + answerHash + '\'' +
                 ", statement='" + statement + '\'' +
-                ", transactionHash=" + transactionHash +
+                ", transactionHash='" + transactionHash + '\'' +
+                ", blockNumber=" + blockNumber +
                 ", voteEventIds=" + voteEventIds +
                 ", answerEventId=" + answerEventId +
                 '}';

@@ -86,7 +86,6 @@ public class RESTInteractionTest {
         long pollingIntervalMillis = 50;
 
         StatePopulator statePopulator = new StatePopulator(projectedState);
-        userState = new UserState(projectedState, nodeConnection);
 
         eventListener = new EventListener(nodeConnection,
                 statePopulator,
@@ -98,6 +97,7 @@ public class RESTInteractionTest {
 
 
         blockNumberCollector = new BlockNumberCollector(nodeConnection, pollingIntervalMillis, 3);
+        userState = new UserState(projectedState, nodeConnection, blockNumberCollector);
 
         LinkedBlockingDeque<byte[]> rawTransactions = new LinkedBlockingDeque<>(100);
         LinkedBlockingDeque<Pair<ReceiptHash, Long>> transactionHashes = new LinkedBlockingDeque<>(100);
@@ -241,7 +241,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 7, 9);
 
-        Assert.assertEquals(465, response.length());
+        Assert.assertEquals(501, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -287,7 +287,7 @@ public class RESTInteractionTest {
 
         String response = getVotes(target1, 5, 7, 9);
 
-        Assert.assertEquals(465, response.length());
+        Assert.assertEquals(501, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
@@ -435,9 +435,7 @@ public class RESTInteractionTest {
         startThreads();
 
         String response = getPlayers(target1);
-
-        Assert.assertEquals(413, response.length());
-
+        Assert.assertEquals(449, response.length());
         JSONObject obj = new JSONObject(response);
 
         Assert.assertNotNull(obj);

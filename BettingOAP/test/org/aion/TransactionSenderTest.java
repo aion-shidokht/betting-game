@@ -61,7 +61,7 @@ public class TransactionSenderTest {
         rawTransactions = new LinkedBlockingDeque<>(100);
         transactionHashes = new LinkedBlockingDeque<>(100);
 
-        userState = new UserState(new ProjectedState(), nodeConnection);
+        userState = new UserState(new ProjectedState(), nodeConnection, blockNumberCollector);
 
         transactionSender = new TransactionSender(blockNumberCollector,
                 rawTransactions,

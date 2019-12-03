@@ -9,23 +9,26 @@ public class AggregatedStatement {
     private final String answerHash;
     private final String statementString;
     private final String statementTransactionHash;
+    private final long statementAge;
     // internal ids associated with events.
     private final Set<Integer> voteEventIds;
 
     private String answerString;
     private String answerTransactionHash;
+    private long answerAge;
 
-    public AggregatedStatement(Statement statement, Answer answer){
+    public AggregatedStatement(Statement statement, Answer answer, long blockNumber){
         this.playerAddress = statement.getPlayerAddress();
         this.statementId = statement.getStatementId();
         this.answerHash = statement.getAnswerHash();
         this.statementString = statement.getStatementString();
         this.statementTransactionHash = statement.getTransactionHash();
         this.voteEventIds = statement.getVoteEventIds();
-
+        this.statementAge = blockNumber - statement.getBlockNumber();
         if(answer != null) {
             this.answerString = answer.getAnswer();
             this.answerTransactionHash = answer.getTransactionHash();
+            this.answerAge = blockNumber - answer.getBlockNumber();
         }
     }
 
@@ -59,5 +62,13 @@ public class AggregatedStatement {
 
     public String getAnswerTransactionHash() {
         return answerTransactionHash;
+    }
+
+    public long getStatementAge() {
+        return statementAge;
+    }
+
+    public long getAnswerAge() {
+        return answerAge;
     }
 }

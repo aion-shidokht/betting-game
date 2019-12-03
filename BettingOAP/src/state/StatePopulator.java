@@ -34,27 +34,27 @@ public class StatePopulator {
                 String eventTopic = new String(topics.get(0)).trim();
                 switch (eventTopic) {
                     case "Registered":
-                        addedLogId = projectedState.addPlayer(Player.from(data, log.copyOfTransactionHash()));
+                        addedLogId = projectedState.addPlayer(Player.from(data, log.copyOfTransactionHash(), log.blockNumber));
                         break;
                     case "Voted":
-                        addedLogId = projectedState.addVote(Vote.from(topics, data, log.copyOfTransactionHash()));
+                        addedLogId = projectedState.addVote(Vote.from(topics, data, log.copyOfTransactionHash(), log.blockNumber));
                         break;
                     case "SubmittedStatement":
-                        addedLogId = projectedState.addStatement(Statement.from(topics, data, log.copyOfTransactionHash()));
+                        addedLogId = projectedState.addStatement(Statement.from(topics, data, log.copyOfTransactionHash(), log.blockNumber));
                         break;
                     case "RevealedAnswer":
-                        addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash()));
+                        addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash(), log.blockNumber));
                         break;
 
                     // todo update after the contract finalization
                     case "DistributedPrize":
-                        addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash());
+                        addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash(), log.blockNumber);
                         break;
                     case "UpdatedBalance":
-                        addedLogId = projectedState.addTransferValue(new BigInteger(data), log.copyOfTransactionHash());
+                        addedLogId = projectedState.addTransferValue(new BigInteger(data), log.copyOfTransactionHash(), log.blockNumber);
                         break;
                     case "GameStopped":
-                        addedLogId = projectedState.stopGame(log.copyOfTransactionHash());
+                        addedLogId = projectedState.stopGame(log.copyOfTransactionHash(), log.blockNumber);
                         break;
                     case "BettingContractDeployed":
                         addedLogId = projectedState.deployedContract();

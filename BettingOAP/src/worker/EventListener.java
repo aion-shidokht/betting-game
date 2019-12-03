@@ -121,7 +121,7 @@ public class EventListener implements Runnable {
         // Could not find a common log. Find the original deployment log and start from there
         if (!foundCommon) {
             statePopulator.clear();
-            
+
             logger.info("Fetching the deployment log..");
             List<Log> newDeploymentLog = nodeConnection.getLogs(startingBlockNumber - deploymentLogRangeCheck,
                     "latest",

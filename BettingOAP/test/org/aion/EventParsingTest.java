@@ -23,7 +23,7 @@ public class EventParsingTest {
 
         String eventTopic = new String(topics.get(0)).trim();
         Assert.assertEquals("Registered", eventTopic);
-        Player p = Player.from(data, transactionHash);
+        Player p = Player.from(data, transactionHash, 10);
         Assert.assertEquals("0xa0feea479a3447b9c92775e6ac478e027ec1cc586424663715c73441dc6d74b1", p.getPlayerAddress().getAddressString());
         Assert.assertEquals(0, p.getScore());
         Assert.assertEquals(Helper.bytesToHexStringWith0x(transactionHash), p.getTransactionHash());
@@ -39,7 +39,8 @@ public class EventParsingTest {
                 "'0x02fb6869f9a056cdb67c30a8fb5d3da42208074ca718cb5bf5684df4f2b1abd8']");
         Statement s = Statement.from(topics,
                 data,
-                transactionHash);
+                transactionHash,
+                10);
         String eventTopic = new String(topics.get(0)).trim();
         Assert.assertEquals("SubmittedStatement", eventTopic);
 
@@ -58,7 +59,8 @@ public class EventParsingTest {
                 "'0x000000000000000000000000000000000000000000000000000000000000000b']");
         Vote v = Vote.from(topics,
                 data,
-                transactionHash);
+                transactionHash,
+                10);
         String eventTopic = new String(topics.get(0)).trim();
         Assert.assertEquals("Voted", eventTopic);
 
@@ -95,7 +97,8 @@ public class EventParsingTest {
         String eventTopic = new String(topics.get(0)).trim();
         Assert.assertEquals("RevealedAnswer", eventTopic);
         Answer a = Answer.from(topics,
-                data, transactionHash);
+                data, transactionHash,
+                10);
         Assert.assertEquals("ans2", a.getAnswer());
         Assert.assertEquals(7, a.getStatementId());
     }

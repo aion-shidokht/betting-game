@@ -6,6 +6,7 @@ import types.TransactionDetails;
 import org.aion.harness.kernel.Address;
 import util.Helper;
 import util.NodeConnection;
+import worker.BlockNumberCollector;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -22,12 +23,15 @@ public class UserState {
 
     private ProjectedState projectedState;
     private NodeConnection nodeConnection;
+    private BlockNumberCollector blockNumberCollector;
 
     public UserState(ProjectedState projectedState,
-                     NodeConnection nodeConnection) {
+                     NodeConnection nodeConnection,
+                     BlockNumberCollector blockNumberCollector) {
         this.userTransactions = new ConcurrentHashMap<>();
         this.projectedState = projectedState;
         this.nodeConnection = nodeConnection;
+        this.blockNumberCollector = blockNumberCollector;
     }
 
     public void putTransaction(Address sender, TransactionDetails transactionDetails) {
@@ -71,15 +75,17 @@ public class UserState {
     // Once the maps are copied from the projected state, they are iterated over here. the state might have changed
     // between 2 consecutive ConcurrentHashMap copies and the retrieval methods in this class should be able to handle that.
     public List<AggregatedStatement> getStatements() {
+        long blockNumber = blockNumberCollector.getCurrentBlockNumber();
+
         Map<Integer, Statement> statements = projectedState.getStatements();
         Map<Integer, Answer> answers = projectedState.getAnswers();
         List<AggregatedStatement> response = new ArrayList<>();
 
         for (Statement s : statements.values()) {
             if (s.getAnswerEventId() > 0 && answers.containsKey(s.getAnswerEventId())) {
-                response.add(new AggregatedStatement(s, answers.get(s.getAnswerEventId())));
+                response.add(new AggregatedStatement(s, answers.get(s.getAnswerEventId()), blockNumber));
             } else {
-                response.add(new AggregatedStatement(s, null));
+                response.add(new AggregatedStatement(s, null, blockNumber));
             }
         }
 
