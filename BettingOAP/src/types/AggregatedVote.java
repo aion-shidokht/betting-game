@@ -5,7 +5,7 @@ public class AggregatedVote {
     private final int statementId;
     private final String guessedAnswer;
     private final String transactionHash;
-    private final long blockNumber;
+    private final long age;
     private final boolean isCorrect;
 
     public Address getPlayerAddress() {
@@ -24,20 +24,20 @@ public class AggregatedVote {
         return transactionHash;
     }
 
-    public long getBlockNumber() {
-        return blockNumber;
+    public long getAge() {
+        return age;
     }
 
     public boolean isCorrect() {
         return isCorrect;
     }
 
-    public AggregatedVote(Vote vote, boolean b) {
+    public AggregatedVote(Vote vote, long blockNumber, boolean b) {
         this.playerAddress = vote.getPlayerAddress();
         this.statementId = vote.getStatementId();
         this.guessedAnswer = vote.getGuessedAnswer();
         this.transactionHash = vote.getTransactionHash();
-        this.blockNumber = vote.getBlockNumber();
+        this.age = blockNumber - vote.getBlockNumber();
         this.isCorrect = b;
     }
 }

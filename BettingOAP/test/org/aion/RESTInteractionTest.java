@@ -10,6 +10,7 @@ import org.aion.harness.result.RpcResult;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +38,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.aion.TestingHelper.getOneTopicEvent;
 import static org.aion.TestingHelper.getRevealedAnswerLog;
@@ -134,7 +134,8 @@ public class RESTInteractionTest {
         blockNumberCollectorThread.start();
     }
 
-    private void shutdownThreads() throws InterruptedException {
+    @After
+    public void shutdownThreads() throws InterruptedException {
         server.shutdown();
         eventListener.shutdown();
         blockNumberCollector.shutdown();
@@ -190,7 +191,7 @@ public class RESTInteractionTest {
             Assert.assertEquals(i, next.getInt("statementId"));
             Assert.assertEquals("Q", next.getString("statementString"));
             Assert.assertEquals("0x48", next.getString("answerHash"));
-            Assert.assertEquals("0x" + Helper.bytesToHexString(player1.getAddressBytes()),
+            Assert.assertEquals(Helper.bytesToHexStringWith0x(player1.getAddressBytes()),
                     next.getJSONObject("playerAddress").getString("addressString"));
             if(i == 1){
                 Assert.assertEquals("A", next.getString("answerString"));
@@ -202,7 +203,6 @@ public class RESTInteractionTest {
         }
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -239,20 +239,19 @@ public class RESTInteractionTest {
 
         startThreads();
 
-        String response = getVotes(target1, 7, 9);
+        String response = getVotes(target1);
 
-        Assert.assertEquals(501, response.length());
-        JSONObject obj = new JSONObject(response);
+        Assert.assertEquals(1271, response.length());
+        JSONArray array = new JSONArray(response);
 
-        Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
-        Assert.assertEquals(3, ((JSONObject) obj.get("9")).get("statementId"));
+        Assert.assertEquals(1, array.getJSONObject(0).getInt("statementId"));
+        Assert.assertEquals(3, array.getJSONObject(2).getInt("statementId"));
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
-    public void testGetVotesNotPresent() throws InterruptedException, IOException {
+    public void testGetVotesCorrectAnswer() throws InterruptedException, IOException {
         Client c1 = getNewClient();
         WebTarget target1 = c1.target(URI);
 
@@ -268,15 +267,15 @@ public class RESTInteractionTest {
             voteLogs[i] = TestingHelper.getVotedLog(deployLog.address, blockNumber, player1, 1 + i, "A".getBytes(), i + size, hash);
         }
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player1, 0, hash);
+        Log revealAnswer = getRevealedAnswerLog(deployLog.address, blockNumber, 1, "A".getBytes(), size + 1, hash);
 
         List<Log> logs1 = new ArrayList<>();
-        logs1.add(deployLog);
-        logs1.add(registerLog);
+        logs1.addAll(List.of(deployLog, registerLog, revealAnswer));
         logs1.addAll(Arrays.asList(submitLogs));
         logs1.addAll(Arrays.asList(voteLogs));
 
         List<Log> logs2 = new ArrayList<>();
-        logs2.add(registerLog);
+        logs2.addAll(List.of(registerLog, revealAnswer));
         logs2.addAll(Arrays.asList(submitLogs));
         logs2.addAll(Arrays.asList(voteLogs));
 
@@ -285,16 +284,15 @@ public class RESTInteractionTest {
 
         startThreads();
 
-        String response = getVotes(target1, 5, 7, 9);
+        String response = getVotes(target1);
 
-        Assert.assertEquals(501, response.length());
-        JSONObject obj = new JSONObject(response);
+        Assert.assertEquals(1270, response.length());
+        JSONArray array = new JSONArray(response);
 
-        Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
-        Assert.assertEquals(3, ((JSONObject) obj.get("9")).get("statementId"));
+        Assert.assertEquals(1, array.getJSONObject(0).getInt("statementId"));
+        Assert.assertEquals(true, array.getJSONObject(0).getBoolean("correct"));
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -347,7 +345,6 @@ public class RESTInteractionTest {
         Thread.sleep(1000);
         Assert.assertEquals(1, userState.getTransactions("a0c7ef65be0ea76f0a6691e1b7a78e8b09c7e31a23964cc81d74f56a47c2f4bf").size());
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -392,25 +389,13 @@ public class RESTInteractionTest {
         String[] response = new String[clientSize];
 
         for (int i = 0; i < clientSize; i++) {
-            if (i % 2 == 0) {
-                response[i] = getVotes(webTargets[i], 7, 9);
-            } else {
-                response[i] = getVotes(webTargets[i], 8, 10);
-            }
+            response[i] = getVotes(webTargets[i]);
         }
 
         for (int i = 0; i < clientSize; i++) {
-            JSONObject obj = new JSONObject(response[i]);
-            if (i % 2 == 0) {
-                Assert.assertEquals(1, ((JSONObject) obj.get("7")).get("statementId"));
-                Assert.assertEquals(3, ((JSONObject) obj.get("9")).get("statementId"));
-            } else {
-                Assert.assertEquals(2, ((JSONObject) obj.get("8")).get("statementId"));
-                Assert.assertEquals(4, ((JSONObject) obj.get("10")).get("statementId"));
-            }
+            JSONArray array = new JSONArray(response[i]);
+            Assert.assertEquals(1, array.getJSONObject(0).getInt("statementId"));
         }
-
-        shutdownThreads();
     }
 
     @Test
@@ -435,15 +420,19 @@ public class RESTInteractionTest {
         startThreads();
 
         String response = getPlayers(target1);
-        Assert.assertEquals(449, response.length());
-        JSONObject obj = new JSONObject(response);
+        Assert.assertEquals(425, response.length());
+        JSONArray array = new JSONArray(response);
 
-        Assert.assertNotNull(obj);
-        Assert.assertNotNull(obj.getJSONObject("1"));
-        Assert.assertNotNull(obj.getJSONObject("2"));
+        Assert.assertNotNull(array);
+        Assert.assertEquals(2, array.length());
+        Assert.assertEquals(0, array.getJSONObject(0).getInt("score"));
+        Assert.assertEquals(Helper.bytesToHexStringWith0x(player1.getAddressBytes()),
+                array.getJSONObject(0).getJSONObject("playerAddress").getString("addressString"));
+
+        Assert.assertEquals(Helper.bytesToHexStringWith0x(player2.getAddressBytes()),
+                array.getJSONObject(1).getJSONObject("playerAddress").getString("addressString"));
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -494,7 +483,6 @@ public class RESTInteractionTest {
         }
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -522,7 +510,6 @@ public class RESTInteractionTest {
         Assert.assertTrue((Boolean) gameObj.get("prizeDistributed"));
 
         c1.close();
-        shutdownThreads();
     }
 
     @Test
@@ -540,7 +527,6 @@ public class RESTInteractionTest {
         Assert.assertEquals("16", nonce);
 
         c1.close();
-        shutdownThreads();
     }
 
     private static String getStatements(WebTarget target) {
@@ -551,8 +537,8 @@ public class RESTInteractionTest {
         return target.path("state/sendTransaction").request().post(Entity.entity(data, MediaType.TEXT_PLAIN_TYPE));
     }
 
-    private static String getVotes(WebTarget target, Object... ids) {
-        return target.queryParam("eventIds", ids).path("state/votes").request().get(String.class);
+    private static String getVotes(WebTarget target) {
+        return target.path("state/allVotes").request().get(String.class);
     }
 
     private static String getPlayers(WebTarget target) {

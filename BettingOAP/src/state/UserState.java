@@ -92,16 +92,41 @@ public class UserState {
         return response;
     }
 
-    public Map<Integer, Player> getPlayers() {
-        return projectedState.getPlayers();
+    public Collection<AggregatedPlayer> getPlayers() {
+        long blockNumber = blockNumberCollector.getCurrentBlockNumber();
+
+        boolean prizeDistributed = projectedState.getGameStatus().isPrizeDistributed();
+
+        List<Player> players = new ArrayList<>(projectedState.getPlayers().values());
+        List<AggregatedPlayer> aggregatedPlayers = new ArrayList<>();
+        for(Player p: players){
+            aggregatedPlayers.add(new AggregatedPlayer(p, blockNumber, prizeDistributed));
+        }
+        return aggregatedPlayers;
     }
 
     public Map<Integer, Answer> getAnswers() {
         return projectedState.getAnswers();
     }
 
-    public Map<Integer, Vote> getVotes() {
-        return projectedState.getVotes();
+    public List<AggregatedVote> getVotes() {
+        long blockNumber = blockNumberCollector.getCurrentBlockNumber();
+
+        List<Answer> answers = new ArrayList<>(projectedState.getAnswers().values());
+        List<Vote> votes = new ArrayList<>(projectedState.getVotes().values());
+        List<AggregatedVote> aggregatedVotes = new ArrayList<>();
+
+        for (Vote v : votes) {
+            boolean found = false;
+            for (Answer a : answers) {
+                if (v.getStatementId() == a.getStatementId() && v.getGuessedAnswer().equals(a.getAnswer())) {
+                    found = true;
+                    break;
+                }
+            }
+            aggregatedVotes.add(new AggregatedVote(v, blockNumber, found));
+        }
+        return aggregatedVotes;
     }
 
     public Game getGameStatus() {

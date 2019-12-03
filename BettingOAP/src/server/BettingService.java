@@ -10,10 +10,9 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Path("/state")
 public class BettingService {
@@ -34,7 +33,7 @@ public class BettingService {
     @GET
     @Path("/allPlayers")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<Integer, Player> getAllPlayers() {
+    public Collection<AggregatedPlayer> getAllPlayers() {
         return userState.getPlayers();
     }
 
@@ -46,13 +45,10 @@ public class BettingService {
     }
 
     @GET
-    @Path("/votes")
+    @Path("/allVotes")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<Integer, Vote> getVoteIds(@QueryParam("eventIds") final List<Integer> eventIds) {
-        Map<Integer, Vote> voteMap = userState.getVotes();
-        return eventIds.stream()
-                .filter(voteMap::containsKey)
-                .collect(Collectors.toMap(Function.identity(), voteMap::get));
+    public List<AggregatedVote> getVotes() {
+        return userState.getVotes();
     }
 
     @GET
