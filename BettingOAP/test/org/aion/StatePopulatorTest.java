@@ -265,7 +265,7 @@ public class StatePopulatorTest {
     public void testDistributedPrizeEvent() throws InterruptedException {
         Address player = new Address(getRandomAddressBytes());
 
-        Log log = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0, null);
+        Log log = getDistributedPrizeLog(player, blockNumber, 5, 0, null);
         when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(deployLog, log)));
         when(nodeConnection.getLogs(log.blockNumber, "latest", topics, sampleAddress)).thenReturn(new ArrayList<>(Arrays.asList(log)));
         startThreads();
@@ -278,6 +278,6 @@ public class StatePopulatorTest {
         Assert.assertEquals(2, projectedState.getBlocks().size());
         Assert.assertEquals(BlockTuple.of(log.blockNumber, log.blockHash, Arrays.asList(expectedId)), projectedState.getBlocks().getLast());
 
-        Assert.assertTrue(projectedState.getGameStatus().isPrizeDistributed());
+        Assert.assertEquals(5, projectedState.getGameStatus().getWinnerCount());
     }
 }

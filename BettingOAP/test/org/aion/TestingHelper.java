@@ -85,6 +85,21 @@ public class TestingHelper {
                 getRandomAddressBytes());
     }
 
+    static Log getDistributedPrizeLog(Address contractAddress,
+                                    long blockNumber,
+                                    int winnerCount,
+                                    int transactionIndex,
+                                    byte[] blockHash) {
+        return new Log(contractAddress,
+                BigInteger.valueOf(winnerCount).toByteArray(),
+                Arrays.asList("DistributedPrize".getBytes()),
+                blockNumber,
+                transactionIndex,
+                0,
+                blockHash == null ? getRandomAddressBytes() : blockHash,
+                getRandomAddressBytes());
+    }
+
     static Log getOneTopicEvent(Address contractAddress,
                                 long blockNumber,
                                 String topic,

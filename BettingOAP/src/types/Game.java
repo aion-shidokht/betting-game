@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class Game {
     private Pair<Integer, Boolean> isStopped;
-    private Pair<Integer, Boolean> prizeDistributed;
+    private Pair<Integer, Integer> prizeDistributed;
     private Pair<Integer, Address[]> winners;
     private Map<Integer, BigInteger> transferredValues;
     private Map<Integer, String> transactionHashes;
@@ -20,7 +20,7 @@ public class Game {
 
     public Game() {
         isStopped = Pair.of(-1, false);
-        prizeDistributed = Pair.of(-1, false);
+        prizeDistributed = Pair.of(-1, -1);
         transferredValues = new HashMap<>();
         blockNumbers = new HashMap<>();
         winners = Pair.of(-1, null);
@@ -28,7 +28,7 @@ public class Game {
         blockNumbers = new HashMap<>();
     }
 
-    private Game(Pair<Integer, Boolean> isStopped, Pair<Integer, Boolean> prizeDistributed, Pair<Integer, Address[]> winners,
+    private Game(Pair<Integer, Boolean> isStopped, Pair<Integer, Integer> prizeDistributed, Pair<Integer, Address[]> winners,
                  Map<Integer, BigInteger> transferredValues, Map<Integer, String> transactionHashes, Map<Integer, Long> blockNumbers) {
         this.isStopped = isStopped;
         this.prizeDistributed = prizeDistributed;
@@ -45,8 +45,9 @@ public class Game {
         blockNumbers.put(id, blockNumber);
     }
 
-    public void setPrizeDistributed(Integer id, byte[] transactionHash, long blockNumber) {
-        this.prizeDistributed = Pair.of(id, true);
+    public void setPrizeDistributed(Integer id, byte[] data, byte[] transactionHash, long blockNumber) {
+        int winnerCount = new BigInteger(data).intValue();
+        this.prizeDistributed = Pair.of(id, winnerCount);
         Assertion.assertTrue(!transactionHashes.containsKey(id));
         transactionHashes.put(id, Helper.bytesToHexStringWith0x(transactionHash));
         blockNumbers.put(id, blockNumber);
@@ -71,7 +72,7 @@ public class Game {
         return isStopped.value;
     }
 
-    public boolean isPrizeDistributed() {
+    public int getWinnerCount() {
         return prizeDistributed.value;
     }
 
@@ -109,7 +110,7 @@ public class Game {
     }
 
     private void resetDistributedPrize() {
-        prizeDistributed = Pair.of(-1, false);
+        prizeDistributed = Pair.of(-1, -1);
     }
 
     private void resetWinnersList() {

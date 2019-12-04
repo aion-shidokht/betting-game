@@ -1,6 +1,7 @@
 import avm.Address;
 import org.aion.avm.embed.AvmRule;
 import org.aion.avm.embed.hash.HashUtils;
+import org.aion.avm.userlib.abi.ABIDecoder;
 import org.aion.avm.userlib.abi.ABIStreamingEncoder;
 import org.aion.types.AionAddress;
 import org.junit.Assert;
@@ -9,11 +10,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class BettingContractTest {
 
     @Rule
-    public AvmRule avmRule = new AvmRule(false);
+    public AvmRule avmRule = new AvmRule(true);
 
     // default address with balance
     private Address preminedAddress = avmRule.getPreminedAccount();
@@ -130,7 +132,7 @@ public class BettingContractTest {
 
     @Test
     public void testRevealLimits() {
-        Address[] users = new Address[215];
+        Address[] users = new Address[205];
         for (int i = 0; i < users.length; i++) {
             users[i] = avmRule.getRandomAddress(ENOUGH_BALANCE_TO_TRANSACT);
             register(users[i]);
@@ -160,6 +162,49 @@ public class BettingContractTest {
         callMethod(preminedAddress, "payout");
         BigInteger newBalance = avmRule.kernel.getBalance(new AionAddress(users[users.length -1].toByteArray()));
         Assert.assertEquals(balance.add(ENOUGH_BALANCE_TO_TRANSACT), newBalance);
+    }
+
+    @Test
+    public void testPayoutLimits() {
+        Address[] users = new Address[150];
+        for (int i = 0; i < users.length; i++) {
+            users[i] = avmRule.getRandomAddress(ENOUGH_BALANCE_TO_TRANSACT);
+            register(users[i]);
+        }
+
+        byte[] answer = getStringWithLength(100).getBytes();
+        byte[] salt = getStringWithLength(20).getBytes();
+        submitStatement(users[0], "who did that".getBytes(), answer, salt);
+
+        for (int i = 1; i < users.length; i++) {
+            vote(users[i], 1, answer);
+        }
+
+        callMethod(preminedAddress, "stopGame");
+
+        AvmRule.ResultWrapper result = revealAnswer(users[0], 1, answer, salt);
+        Assert.assertTrue(result.getReceiptStatus().isSuccess());
+
+        transferValueToContract(ENOUGH_BALANCE_TO_TRANSACT);
+
+        BigInteger[] balances = new BigInteger[users.length - 1];
+        for (int i = 1; i < users.length; i++) {
+            balances[i - 1] = avmRule.kernel.getBalance(new AionAddress(users[i].toByteArray()));
+        }
+
+        BigInteger prize = ENOUGH_BALANCE_TO_TRANSACT.divide(BigInteger.valueOf(users.length - 1));
+
+        callMethod(preminedAddress, "payout");
+
+        Address[] winners = getWinnerArray();
+        Assert.assertEquals(users.length -1, winners.length);
+
+        for (int i = 1; i < users.length; i++) {
+            Address user = users[i];
+            BigInteger newBalance = avmRule.kernel.getBalance(new AionAddress(user.toByteArray()));
+            Assert.assertEquals(balances[i - 1].add(prize), newBalance);
+            Assert.assertTrue(Arrays.asList(winners).contains(user));
+        }
     }
 
     @Test
@@ -285,5 +330,24 @@ public class BettingContractTest {
     private void transferValueToContract(BigInteger amount) {
         AvmRule.ResultWrapper result = avmRule.balanceTransfer(preminedAddress, bettingContract, amount, 2_000_000L, 1L);
         Assert.assertTrue(result.getReceiptStatus().isSuccess());
+    }
+
+    private Address[] getWinnerArray() {
+        byte[] txData = new ABIStreamingEncoder()
+                .encodeOneString("getWinnerArray")
+                .toBytes();
+
+        AvmRule.ResultWrapper result = avmRule.call(preminedAddress, bettingContract, BigInteger.ZERO, txData, 2_000_000L, 1L);
+        Assert.assertTrue(result.getReceiptStatus().isSuccess());
+        return (Address[]) result.getDecodedReturnData();
+    }
+
+    protected String getStringWithLength(int length) {
+        if (length > 0) {
+            char[] array = new char[length];
+            Arrays.fill(array, 'a');
+            return new String(array);
+        }
+        return "";
     }
 }

@@ -40,8 +40,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static org.aion.TestingHelper.getOneTopicEvent;
-import static org.aion.TestingHelper.getRevealedAnswerLog;
+import static org.aion.TestingHelper.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -489,7 +488,7 @@ public class RESTInteractionTest {
         long blockNumber = deployLog.blockNumber + 1;
         Log registerLog = TestingHelper.getRegisteredLog(deployLog.address, blockNumber, player, 0, null);
         Log gameStoppedLog = getOneTopicEvent(player, blockNumber, "GameStopped", 0, registerLog.blockHash);
-        Log distributedPrizeLog = getOneTopicEvent(player, blockNumber, "DistributedPrize", 0,  registerLog.blockHash);
+        Log distributedPrizeLog = TestingHelper.getDistributedPrizeLog(player, blockNumber, 5, 0,  registerLog.blockHash);
 
         List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog, registerLog, gameStoppedLog, distributedPrizeLog));
         List<Log> logs2 = new ArrayList<>(Arrays.asList(registerLog, gameStoppedLog, distributedPrizeLog));
@@ -502,7 +501,7 @@ public class RESTInteractionTest {
         String game = getGameStatus(target1);
         JSONObject gameObj = new JSONObject(game);
         Assert.assertTrue((Boolean) gameObj.get("stopped"));
-        Assert.assertTrue((Boolean) gameObj.get("prizeDistributed"));
+        Assert.assertEquals(5, gameObj.get("winnerCount"));
 
         c1.close();
     }

@@ -105,10 +105,12 @@ public class EventParsingTest {
 
     @Test
     public void payout() {
-         byte[] data = LogBuilder.parseData("0x");
+         byte[] data = LogBuilder.parseData("0x0000000000000000000000000000000000000000000000000000000000000007");
         List<byte[]> topics = LogBuilder.parseJsonTopics(
                 "['0x44697374726962757465645072697a6500000000000000000000000000000000']");
         String eventTopic = new String(topics.get(0)).trim();
         Assert.assertEquals("DistributedPrize", eventTopic);
+        Assert.assertEquals(7, new BigInteger(data).intValue());
+
     }
 }

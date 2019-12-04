@@ -99,7 +99,7 @@ public class UserState {
     public Collection<AggregatedPlayer> getPlayers() {
         long blockNumber = blockNumberCollector.getCurrentBlockNumber();
 
-        boolean prizeDistributed = projectedState.getGameStatus().isPrizeDistributed();
+        boolean prizeDistributed = projectedState.getGameStatus().getWinnerCount() >= 0;
 
         List<Player> players = new ArrayList<>(projectedState.getPlayers().values());
         List<AggregatedPlayer> aggregatedPlayers = new ArrayList<>();

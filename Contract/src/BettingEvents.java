@@ -32,8 +32,8 @@ public class BettingEvents {
                 answer);
     }
 
-    public static void distributedPrize() {
-        Blockchain.log("DistributedPrize".getBytes(), new byte[0]);
+    public static void distributedPrize(int winnerCount) {
+        Blockchain.log("DistributedPrize".getBytes(), BigInteger.valueOf(winnerCount).toByteArray());
     }
 
     public static void updatedBalance(BigInteger balance) {

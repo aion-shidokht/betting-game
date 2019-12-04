@@ -105,11 +105,11 @@ public class ProjectedState {
         }
     }
 
-    public int distributedPrize(byte[] transactionHash, long blockNumber) {
+    public int distributedPrize(byte[] data, byte[] transactionHash, long blockNumber) {
         gameLock.writeLock().lock();
         try {
             currentEventId++;
-            currentGame.setPrizeDistributed(currentEventId, transactionHash, blockNumber);
+            currentGame.setPrizeDistributed(currentEventId, data, transactionHash, blockNumber);
             return currentEventId;
         } finally {
             gameLock.writeLock().unlock();

@@ -26,6 +26,7 @@ public class BettingContract {
 
     private static Address owner;
     private static int nextStatementId;
+    private static int maximumScore;
 
     static {
         owner = Blockchain.getCaller();
@@ -133,14 +134,9 @@ public class BettingContract {
         requireNoValue();
 
         final List<Address> winnerList = new AionList<>();
-        int currentMaxScore = -1;
         for (Map.Entry<Address, Integer> entry : playerScores.entrySet()) {
             int score = entry.getValue();
-            if (score > currentMaxScore) {
-                winnerList.clear();
-                winnerList.add(entry.getKey());
-                currentMaxScore = score;
-            } else if (score == currentMaxScore) {
+            if (score == maximumScore) {
                 winnerList.add(entry.getKey());
             }
         }
@@ -152,7 +148,7 @@ public class BettingContract {
         }
 
         isPrizePayedOut = true;
-        BettingEvents.distributedPrize();
+        BettingEvents.distributedPrize(winnerList.size());
     }
 
     @Callable
@@ -178,6 +174,24 @@ public class BettingContract {
         return playerScores.get(playerAddress);
     }
 
+    @Callable
+    public static Address[] getWinnerArray() {
+        final List<Address> winnerList = new AionList<>();
+
+        for (Map.Entry<Address, Integer> entry : playerScores.entrySet()) {
+            int score = entry.getValue();
+            if (score == maximumScore) {
+                winnerList.add(entry.getKey());
+            }
+        }
+
+        final Address[] winner = new Address[winnerList.size()];
+        for (int i = 0; i < winner.length; i++) {
+            winner[i] = winnerList.get(i);
+        }
+        return winner;
+    }
+
     @Fallback
     public static void fallback() {
         BettingEvents.updatedBalance(Blockchain.getBalanceOfThisContract());
@@ -199,19 +213,17 @@ public class BettingContract {
     private static void adjustScores(Integer statementId, byte[] answer) {
         for (Address player : playerScores.keySet()) {
             if (hasProvidedAnswer(player, statementId, answer)) {
-                playerScores.put(player, playerScores.get(player) + 1);
+                int newScore = playerScores.get(player) + 1;
+                playerScores.put(player, newScore);
+                if(newScore > maximumScore){
+                    maximumScore = newScore;
+                }
             }
         }
     }
 
-    // todo value should not be transferred using normal calls?
     private static void requireNoValue() {
         Blockchain.require(Blockchain.getValue().signum() == 0);
     }
 }
-
-// todo choose the best answer type
-// todo fallback -> event?
-// todo add winners to the event, max number of winner?
-// todo potentially store the player answers in a bit vector, ask players to ask for their score to be calculated once answers have been revealed
 

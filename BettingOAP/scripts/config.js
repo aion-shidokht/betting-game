@@ -18,4 +18,6 @@ public static void revealAnswer(int, byte[], byte[])
 public static void payout()
 public static void stopGame()
 public static void sefDestruct()
+public static int getScore(Address)
+public static Address[] getWinnerArray()
 `;

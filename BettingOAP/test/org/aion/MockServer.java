@@ -95,7 +95,7 @@ public class MockServer {
             projectedState.addAnswer(types.Answer.from(topics, data, TestingHelper.getRandomAddressBytes(), currentBlockNumber));
         }
 
-        projectedState.distributedPrize(TestingHelper.getRandomAddressBytes(), currentBlockNumber);
+        projectedState.distributedPrize(BigInteger.TEN.toByteArray(), TestingHelper.getRandomAddressBytes(), currentBlockNumber);
     }
 
 

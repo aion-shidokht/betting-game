@@ -45,10 +45,8 @@ public class StatePopulator {
                     case "RevealedAnswer":
                         addedLogId = projectedState.addAnswer(Answer.from(topics, data, log.copyOfTransactionHash(), log.blockNumber));
                         break;
-
-                    // todo update after the contract finalization
                     case "DistributedPrize":
-                        addedLogId = projectedState.distributedPrize(log.copyOfTransactionHash(), log.blockNumber);
+                        addedLogId = projectedState.distributedPrize(data, log.copyOfTransactionHash(), log.blockNumber);
                         break;
                     case "UpdatedBalance":
                         addedLogId = projectedState.addTransferValue(new BigInteger(data), log.copyOfTransactionHash(), log.blockNumber);
