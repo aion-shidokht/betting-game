@@ -1,4 +1,7 @@
-package types;
+package types.Json;
+
+import types.Address;
+import types.Player;
 
 public class AggregatedPlayer {
     private final Address playerAddress;

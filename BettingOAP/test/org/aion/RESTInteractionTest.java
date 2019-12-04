@@ -467,19 +467,14 @@ public class RESTInteractionTest {
 
         startThreads();
 
-        int statementId = 1;
-
         String allAnswers = getAnswers(target1);
-        JSONObject allAnswerObj = new JSONObject(allAnswers);
+        JSONArray allAnswerArray = new JSONArray(allAnswers);
+        Assert.assertEquals(size, allAnswerArray.length());
 
-        for (int i = 7; i < size + 7; i++) {
-            String response = getAnswer(target1, i);
-            JSONObject answerObj = new JSONObject(response);
-            Assert.assertNotNull(answerObj);
-            Assert.assertEquals(statementId, answerObj.get("statementId"));
-            statementId++;
+        for (int i = 0; i < size; i++) {
+            Assert.assertEquals(i + 1, allAnswerArray.getJSONObject(i).getInt("statementId"));
+            Assert.assertEquals("A", allAnswerArray.getJSONObject(i).getString("answer"));
 
-            Assert.assertNotNull(allAnswerObj.getJSONObject(String.valueOf(i)));
         }
 
         c1.close();

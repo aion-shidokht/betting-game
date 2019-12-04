@@ -1,4 +1,8 @@
-package types;
+package types.Json;
+
+import types.Address;
+import types.Answer;
+import types.Statement;
 
 import java.util.Set;
 

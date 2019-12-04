@@ -2,6 +2,10 @@ package state;
 
 import org.aion.harness.result.RpcResult;
 import types.*;
+import types.Json.AggregatedAnswer;
+import types.Json.AggregatedPlayer;
+import types.Json.AggregatedStatement;
+import types.Json.AggregatedVote;
 import types.TransactionDetails;
 import org.aion.harness.kernel.Address;
 import util.Helper;
@@ -105,8 +109,15 @@ public class UserState {
         return aggregatedPlayers;
     }
 
-    public Map<Integer, Answer> getAnswers() {
-        return projectedState.getAnswers();
+    public List<AggregatedAnswer> getAnswers() {
+        long blockNumber = blockNumberCollector.getCurrentBlockNumber();
+        List<AggregatedAnswer> aggregatedAnswers = new ArrayList<>();
+
+        List<Answer> answers = new ArrayList<>(projectedState.getAnswers().values());
+        for (Answer a : answers) {
+            aggregatedAnswers.add(new AggregatedAnswer(a, blockNumber));
+        }
+        return aggregatedAnswers;
     }
 
     public List<AggregatedVote> getVotes() {

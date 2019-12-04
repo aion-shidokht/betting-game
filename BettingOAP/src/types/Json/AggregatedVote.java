@@ -1,4 +1,7 @@
-package types;
+package types.Json;
+
+import types.Address;
+import types.Vote;
 
 public class AggregatedVote {
     private final Address playerAddress;
