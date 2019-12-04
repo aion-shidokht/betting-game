@@ -2,17 +2,13 @@ package server;
 
 import main.SignedTransactionBuilder;
 import state.UserState;
-import types.*;
 import util.Helper;
 import util.QueuePopulator;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.math.BigInteger;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import javax.ws.rs.core.Response;
 
 @Path("/state")
 public class BettingService {
@@ -26,57 +22,97 @@ public class BettingService {
     @GET
     @Path("/allStatements")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AggregatedStatement> getAllStatements() {
-        return userState.getStatements();
+    public Response getAllStatements() {
+        return Response.ok()
+                .entity(userState.getStatements())
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/allPlayers")
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<AggregatedPlayer> getAllPlayers() {
-        return userState.getPlayers();
+    public Response getAllPlayers() {
+        return Response.ok()
+                .entity(userState.getPlayers())
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/allAnswers")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<Integer, Answer> getAllAnswers() {
-        return userState.getAnswers();
+    public Response getAllAnswers() {
+        return Response.ok()
+                .entity(userState.getAnswers())
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/allVotes")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AggregatedVote> getVotes() {
-        return userState.getVotes();
+    public Response getVotes() {
+        return Response.ok()
+                .entity(userState.getVotes())
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/answer")
     @Produces(MediaType.APPLICATION_JSON)
-    public Answer getAnswerId(@QueryParam("eventId") final Integer eventId) {
-        return userState.getAnswers().get(eventId);
+    public Response getAnswerId(@QueryParam("eventId") final Integer eventId) {
+        return Response.ok()
+                .entity(userState.getAnswers().get(eventId))
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/gameStatus")
     @Produces(MediaType.APPLICATION_JSON)
-    public Game getGameStatus() {
-        return userState.getGameStatus();
+    public Response getGameStatus() {
+        return Response.ok()
+                .entity(userState.getGameStatus())
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/getNonce")
     @Produces(MediaType.APPLICATION_JSON)
-    public BigInteger getGameStatus(@QueryParam("address") final String address) {
-        return userState.getNonce(new org.aion.harness.kernel.Address(Helper.hexStringToBytes(address)));
+    public Response getNonce(@QueryParam("address") final String address) {
+        return Response.ok()
+                .entity(userState.getNonce(new org.aion.harness.kernel.Address(Helper.hexStringToBytes(address))))
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @GET
     @Path("/getTransactions")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<TransactionDetails> getTransactions(@QueryParam("address") final String address) {
-        return userState.getTransactions(address);
+    public Response getTransactions(@QueryParam("address") final String address) {
+        return Response.ok()
+                .entity(userState.getTransactions(address))
+                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .allow("OPTIONS")
+                .build();
     }
 
     @POST
