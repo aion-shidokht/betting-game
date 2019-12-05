@@ -169,6 +169,22 @@ public class ProjectedState {
         return Collections.unmodifiableMap(answersCopy);
     }
 
+    public List<String> getWinners() {
+        final List<String> winnerList = new ArrayList<>();
+        int currentMaxScore = 0;
+        for (Player p : players.values()) {
+            int score = p.getScore();
+            if (score > currentMaxScore) {
+                winnerList.clear();
+                winnerList.add(p.getPlayerAddress().getAddressString());
+                currentMaxScore = score;
+            } else if (score == currentMaxScore) {
+                winnerList.add(p.getPlayerAddress().getAddressString());
+            }
+        }
+        return winnerList;
+    }
+
     public Game getGameStatus() {
         gameLock.readLock().lock();
         try {

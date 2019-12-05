@@ -640,6 +640,67 @@ public class EventListenerTest {
         shutdownThreads();
     }
 
+    @Test
+    public void testReorgWinnersList() throws InterruptedException {
+        String answer = "A";
+        int statementId = 1;
+
+        Address[] player = new Address[3];
+        Log[] registerLogs = new Log[player.length];
+        Log[] voteLogs = new Log[player.length * 2];
+        byte[] sampleHash = getRandomAddressBytes();
+
+        for (int i = 0; i < player.length; i++) {
+            player[i] = new Address(getRandomAddressBytes());
+            registerLogs[i] = getRegisteredLog(deployLog.address, deployLog.blockNumber + 1, player[i], i, sampleHash);
+        }
+
+        int index = player.length + 1;
+        voteLogs[0] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId, "A".getBytes(), index++ , sampleHash);
+        voteLogs[1] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId + 1, "B".getBytes(), index++ , sampleHash);
+
+        voteLogs[2] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[1], statementId, "A".getBytes(), index++ , sampleHash);
+        voteLogs[3] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[1], statementId + 1, "A".getBytes(), index++ , sampleHash);
+
+        voteLogs[4] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[2], statementId, "B".getBytes(), index++ , sampleHash);
+        voteLogs[5] = getVotedLog(deployLog.address, deployLog.blockNumber + 1, player[2], statementId + 1, "B".getBytes(), index++ , sampleHash);
+
+        Log submittedLog = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId, "S0".getBytes(), getRandomAddressBytes(), player.length + 1, sampleHash);
+        Log submittedLog2 = getSubmittedStatementLog(deployLog.address, deployLog.blockNumber + 1, player[0], statementId + 1, "S0".getBytes(), getRandomAddressBytes(), player.length + 2, sampleHash);
+
+        byte[] sampleHash2 = getRandomAddressBytes();
+        Log revealedAnswerLog = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId, "A".getBytes(), player.length * 5, sampleHash2);
+        Log revealedAnswerLog2 = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId + 1, "B".getBytes(), player.length * 5 + 10, sampleHash2);
+        Log revealedAnswerLogReplacement = getRevealedAnswerLog(deployLog.address, deployLog.blockNumber + 2, statementId + 1, "B".getBytes(), player.length * 5 + 10, getRandomAddressBytes());
+
+        List<Log> logs1 = new ArrayList<>(Arrays.asList(deployLog));
+        logs1.addAll(Arrays.asList(registerLogs));
+        logs1.addAll(Arrays.asList(submittedLog, submittedLog2));
+        logs1.addAll(Arrays.asList(voteLogs));
+        logs1.addAll(Arrays.asList(revealedAnswerLog, revealedAnswerLog2));
+
+        List<Log> logs2 = new ArrayList<>();
+        logs2.addAll(Arrays.asList(registerLogs));
+        logs2.addAll(Arrays.asList(submittedLog, submittedLog2));
+        logs2.addAll(Arrays.asList(voteLogs));
+        logs2.addAll(Arrays.asList(revealedAnswerLogReplacement));
+
+        when(nodeConnection.getLogs(deployLog.blockNumber, "latest", topics, contractAddress)).thenReturn(logs1);
+        when(nodeConnection.getLogs(deployLog.blockNumber + 1, "latest", topics, contractAddress)).thenReturn(logs2);
+        when(nodeConnection.getLogs(deployLog.blockNumber + 2, "latest", topics, contractAddress))
+                .thenReturn(Arrays.asList(revealedAnswerLog, revealedAnswerLog2))
+                .thenReturn(Arrays.asList(revealedAnswerLogReplacement));
+
+        startThreads();
+
+        Thread.sleep(pollingIntervalMillis * 10);
+
+        List<String> winners = projectedState.getWinners();
+
+        Assert.assertEquals(2, winners.size());
+        shutdownThreads();
+    }
+
     private boolean containsPlayer(Map<Integer, Player> playerMap, Address player) {
         types.Address internalAddress = new types.Address(player.getAddressBytes());
         for (Player p : playerMap.values()) {

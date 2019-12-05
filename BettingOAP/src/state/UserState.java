@@ -2,10 +2,7 @@ package state;
 
 import org.aion.harness.result.RpcResult;
 import types.*;
-import types.Json.AggregatedAnswer;
-import types.Json.AggregatedPlayer;
-import types.Json.AggregatedStatement;
-import types.Json.AggregatedVote;
+import types.Json.*;
 import types.TransactionDetails;
 import org.aion.harness.kernel.Address;
 import util.Helper;
@@ -99,7 +96,7 @@ public class UserState {
     public Collection<AggregatedPlayer> getPlayers() {
         long blockNumber = blockNumberCollector.getCurrentBlockNumber();
 
-        boolean prizeDistributed = projectedState.getGameStatus().getWinnerCount() >= 0;
+        boolean prizeDistributed = projectedState.getGameStatus().getPrizeDistributed().key > 0;
 
         List<Player> players = new ArrayList<>(projectedState.getPlayers().values());
         List<AggregatedPlayer> aggregatedPlayers = new ArrayList<>();
@@ -140,7 +137,16 @@ public class UserState {
         return aggregatedVotes;
     }
 
-    public Game getGameStatus() {
-        return projectedState.getGameStatus();
+    public AggregatedGame getGameStatus() {
+        long blockNumber = blockNumberCollector.getCurrentBlockNumber();
+
+        Game gameStatus = projectedState.getGameStatus();
+        ArrayList<String> winners = new ArrayList<>();
+
+        if(gameStatus.getPrizeDistributed().key > 0) {
+            winners = new ArrayList<>(projectedState.getWinners());
+        }
+        return new AggregatedGame(projectedState.getGameStatus(), winners, blockNumber);
     }
+
 }

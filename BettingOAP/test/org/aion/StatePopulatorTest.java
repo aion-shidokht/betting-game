@@ -258,7 +258,7 @@ public class StatePopulatorTest {
         Assert.assertEquals(2, projectedState.getBlocks().size());
         Assert.assertEquals(BlockTuple.of(log.blockNumber, log.blockHash, Arrays.asList(expectedId)), projectedState.getBlocks().getLast());
 
-        Assert.assertTrue(projectedState.getGameStatus().isStopped());
+        Assert.assertTrue(projectedState.getGameStatus().getStopped().value);
     }
 
     @Test
@@ -278,6 +278,6 @@ public class StatePopulatorTest {
         Assert.assertEquals(2, projectedState.getBlocks().size());
         Assert.assertEquals(BlockTuple.of(log.blockNumber, log.blockHash, Arrays.asList(expectedId)), projectedState.getBlocks().getLast());
 
-        Assert.assertEquals(5, projectedState.getGameStatus().getWinnerCount());
+        Assert.assertEquals(5, (long) projectedState.getGameStatus().getPrizeDistributed().value);
     }
 }

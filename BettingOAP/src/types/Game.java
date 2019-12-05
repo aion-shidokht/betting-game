@@ -68,16 +68,16 @@ public class Game {
         blockNumbers.put(id, blockNumber);
     }
 
-    public boolean isStopped() {
-        return isStopped.value;
+    public Pair<Integer, Boolean> getStopped() {
+        return isStopped;
     }
 
-    public int getWinnerCount() {
-        return prizeDistributed.value;
+    public Pair<Integer, Integer> getPrizeDistributed() {
+        return prizeDistributed;
     }
 
-    public Address[] getWinners() {
-        return winners.value;
+    public Pair<Integer, Address[]> getWinners() {
+        return winners;
     }
 
     public BigInteger getTotalPrizeAmount() {

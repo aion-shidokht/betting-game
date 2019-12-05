@@ -501,7 +501,7 @@ public class RESTInteractionTest {
         String game = getGameStatus(target1);
         JSONObject gameObj = new JSONObject(game);
         Assert.assertTrue((Boolean) gameObj.get("stopped"));
-        Assert.assertEquals(5, gameObj.get("winnerCount"));
+        Assert.assertEquals(1, gameObj.getJSONArray("winners").length());
 
         c1.close();
     }

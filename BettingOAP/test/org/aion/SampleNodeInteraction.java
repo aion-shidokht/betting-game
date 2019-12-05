@@ -184,7 +184,7 @@ public class SampleNodeInteraction {
         Assert.assertEquals(2, projectedState.getVotes().size());
         Assert.assertEquals(2, projectedState.getStatements().size());
         Assert.assertEquals(2, projectedState.getStatements().size());
-        Assert.assertTrue(projectedState.getGameStatus().isStopped());
+        Assert.assertTrue(projectedState.getGameStatus().getStopped().value);
     }
 
     private static SignedTransaction register(Address player) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
