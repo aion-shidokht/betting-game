@@ -32,7 +32,7 @@ public class AggregatedGame {
             this.winnersTransactionHash = game.getTransactionHashes().get(eventId);
         }
 
-        this.prize = game.getTotalPrizeAmount();
+        this.prize = game.getTotalPrizeAmount().divide(new BigInteger("1000000000000000000"));
     }
 
     public boolean isStopped() {
