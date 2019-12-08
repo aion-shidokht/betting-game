@@ -87,6 +87,19 @@ function ListMenu({handleMenuChange, selectedMenu}) {
           </ListItemIcon>
           <ListItemText primary="Game Status"/>
         </ListItem>
+
+        {<Divider/>}
+
+        <ListItem
+          button
+          selected={selectedMenu === 5}
+          onClick={event => handleMenuChange(event, 5)}
+        >
+          <ListItemIcon>
+            <ChevronRight style={{color:'#E1DCCD'}}/>
+          </ListItemIcon>
+          <ListItemText primary="How to play"/>
+        </ListItem>
       </List>
     </div>
   )

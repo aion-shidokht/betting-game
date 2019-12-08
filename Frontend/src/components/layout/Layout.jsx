@@ -12,6 +12,7 @@ import useStyles from "../../Style";
 import {AppContext} from "../context/AppContext";
 import MessageBox from "./MessageBox";
 import GameStatus from "./GameStatus";
+import About from "./About";
 
 
 function Layout({history}) {
@@ -31,8 +32,10 @@ function Layout({history}) {
       history.push('/votes')
     } else if (selectedIndex === 3){
       history.push('/answers')
-    } else {
+    } else if(selectedIndex === 4) {
       history.push('/game')
+    } else{
+      history.push('/about')
     }
   };
 
@@ -55,6 +58,7 @@ function Layout({history}) {
               <Route exact path="/votes" component={VoteTable}/>
               <Route exact path="/answers" component={AnswerTable}/>
               <Route exact path="/game" component={GameStatus}/>
+              <Route exact path="/about" component={About}/>
             </Switch>
           </Paper>
         </Grid>
